@@ -1,0 +1,10 @@
+{
+  "name": "sat",
+  "version": "1.0.0",
+  "bin": {
+    "sat": "src/index.ts"
+  },
+  "scripts": {
+    "start": "bun run src/index.ts"
+  }
+}
