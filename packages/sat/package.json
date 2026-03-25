@@ -5,6 +5,6 @@
     "sat": "src/index.ts"
   },
   "scripts": {
-    "start": "bun run src/index.ts"
+    "start": "exec bun src/index.ts"
   }
 }

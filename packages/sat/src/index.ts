@@ -22,4 +22,9 @@ Options:
   process.exit(0);
 }
 
-console.log("Hello from sat!");
+const proc = Bun.spawn(["claude"], {
+  stdin: "inherit",
+  stdout: "inherit",
+  stderr: "inherit",
+});
+await proc.exited;

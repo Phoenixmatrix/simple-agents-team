@@ -5,7 +5,8 @@
   "scripts": {
     "typecheck": "tsgo --build",
     "lint": "oxlint packages/",
-    "check": "tsgo --build && oxlint packages/"
+    "check": "tsgo --build && oxlint packages/",
+    "sat": "bun packages/sat/src/index.ts"
   },
   "devDependencies": {
     "@typescript/native-preview": "^7.0.0-dev.20260325.1",
