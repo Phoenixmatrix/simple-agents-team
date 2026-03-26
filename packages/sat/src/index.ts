@@ -59,12 +59,15 @@ await $`bun workers clear`.quiet();
 await $`bun tracker tasks clear`.quiet();
 await $`bun workers add coordinator ${tmuxTarget}`.quiet();
 
+// Set window name to show worker identity in tmux status bar
+Bun.spawnSync(["tmux", "rename-window", "🤖 coordinator"], { stdio: ["ignore", "ignore", "ignore"] });
+
 const initialPrompt = "Go through the initialization process";
 
 const proc = Bun.spawn(["claude", "--settings", settingsPath, "--model", "claude-sonnet-4-6"], {
   stdin: new TextEncoder().encode(initialPrompt),
   stdout: "inherit",
   stderr: "inherit",
-  env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+  env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1", SAT_AGENT_NAME: "coordinator" },
 });
 await proc.exited;
