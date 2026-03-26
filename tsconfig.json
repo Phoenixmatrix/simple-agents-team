@@ -14,6 +14,7 @@
   "references": [
     { "path": "packages/hooks" },
     { "path": "packages/sat" },
+    { "path": "packages/tracker" },
     { "path": "packages/tmux-manager" }
   ],
   "files": []
