@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/session-start.ts"
+          },
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/read-persona.ts \"$CLAUDE_PROJECT_DIR\"/personas/coordinator"
+          }
+        ]
+      }
+    ]
+  }
+}

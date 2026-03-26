@@ -12,6 +12,7 @@
     "types": ["bun-types"]
   },
   "references": [
+    { "path": "packages/hooks" },
     { "path": "packages/sat" },
     { "path": "packages/tmux-manager" }
   ],
