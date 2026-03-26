@@ -53,6 +53,12 @@ if (!process.env.TMUX) {
   }
 }
 
+// Clear previous state and register coordinator worker
+const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
+await $`bun workers clear`.quiet();
+await $`bun tracker tasks clear`.quiet();
+await $`bun workers add coordinator ${tmuxTarget}`.quiet();
+
 const initialPrompt = "Go through the initialization process";
 
 const proc = Bun.spawn(["claude", "--settings", settingsPath, "--model", "claude-sonnet-4-6"], {

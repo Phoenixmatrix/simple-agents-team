@@ -12,10 +12,12 @@
     "types": ["bun-types"]
   },
   "references": [
+    { "path": "packages/db" },
     { "path": "packages/hooks" },
     { "path": "packages/sat" },
     { "path": "packages/tracker" },
-    { "path": "packages/tmux-manager" }
+    { "path": "packages/tmux-manager" },
+    { "path": "packages/workers" }
   ],
   "files": []
 }

@@ -1,5 +1,4 @@
 import { parseArgs } from "util";
-import { resolve, dirname } from "path";
 import {
   openDatabase,
   getTasks,
@@ -10,8 +9,6 @@ import {
   completeTask,
   assignTask,
   unassignTask,
-  addWorker,
-  clearWorkers,
 } from "./db";
 import * as ui from "./ui";
 
@@ -29,10 +26,6 @@ Commands:
   tasks unassign <id>            Unassign a task's worker
   tasks delete <id>              Delete a task by id
   tasks clear                    Delete all tasks
-
-  workers                        List all workers
-  workers set <name> <status>    Add or update a worker's status
-  workers clear                  Delete all workers
 
   status                         Show all tasks and workers
 
@@ -55,8 +48,7 @@ if (values.help || positionals.length === 0) {
   process.exit(0);
 }
 
-const dbPath = resolve(dirname(Bun.main), "../tracker.db");
-const db = openDatabase(dbPath);
+const db = openDatabase();
 
 const resource = positionals[0];
 const action = positionals[1];
@@ -130,28 +122,6 @@ switch (resource) {
       ui.renderSuccess("All tasks cleared");
     } else {
       ui.renderError(`Unknown tasks action: ${action}`);
-      process.exit(1);
-    }
-    break;
-  }
-
-  case "workers": {
-    if (!action) {
-      ui.renderWorkers(getWorkers(db));
-    } else if (action === "set") {
-      const name = positionals[2];
-      const status = positionals.slice(3).join(" ");
-      if (!name || !status) {
-        ui.renderError("Usage: tracker workers set <name> <status>");
-        process.exit(1);
-      }
-      addWorker(db, name, status);
-      ui.renderSuccess(`Worker ${name} set to "${status}"`);
-    } else if (action === "clear") {
-      clearWorkers(db);
-      ui.renderSuccess("All workers cleared");
-    } else {
-      ui.renderError(`Unknown workers action: ${action}`);
       process.exit(1);
     }
     break;

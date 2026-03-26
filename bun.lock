@@ -10,6 +10,10 @@
         "oxlint": "^1.57.0",
       },
     },
+    "packages/db": {
+      "name": "db",
+      "version": "1.0.0",
+    },
     "packages/hooks": {
       "name": "hooks",
       "version": "1.0.0",
@@ -29,6 +33,19 @@
       "name": "tracker",
       "version": "1.0.0",
       "dependencies": {
+        "db": "workspace:*",
+        "ink": "^6.8.0",
+        "react": "^19.2.4",
+      },
+      "devDependencies": {
+        "@types/react": "^19.2.14",
+      },
+    },
+    "packages/workers": {
+      "name": "workers",
+      "version": "1.0.0",
+      "dependencies": {
+        "db": "workspace:*",
         "ink": "^6.8.0",
         "react": "^19.2.4",
       },
@@ -122,6 +139,8 @@
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
+    "db": ["db@workspace:packages/db"],
+
     "emoji-regex": ["emoji-regex@10.6.0", "", {}, "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="],
 
     "environment": ["environment@1.1.0", "", {}, "sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q=="],
@@ -183,6 +202,8 @@
     "undici-types": ["undici-types@7.18.2", "", {}, "sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w=="],
 
     "widest-line": ["widest-line@6.0.0", "", { "dependencies": { "string-width": "^8.1.0" } }, "sha512-U89AsyEeAsyoF0zVJBkG9zBgekjgjK7yk9sje3F4IQpXBJ10TF6ByLlIfjMhcmHMJgHZI4KHt4rdNfktzxIAMA=="],
+
+    "workers": ["workers@workspace:packages/workers"],
 
     "wrap-ansi": ["wrap-ansi@9.0.2", "", { "dependencies": { "ansi-styles": "^6.2.1", "string-width": "^7.0.0", "strip-ansi": "^7.1.0" } }, "sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww=="],
 
