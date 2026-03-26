@@ -3,8 +3,9 @@ import type { Migration } from "./migrate";
 import { migrate } from "./migrate";
 
 import * as m001 from "./migrations/001-initial";
+import * as m002 from "./migrations/002-task-status";
 
-const migrations: Migration[] = [m001];
+const migrations: Migration[] = [m001, m002];
 
 export function openDatabase(path: string): Database {
   const db = new Database(path);
@@ -18,6 +19,8 @@ export interface Task {
   id: number;
   task_id: string;
   description: string;
+  status: string;
+  assigned_to: string | null;
 }
 
 export interface Worker {
@@ -26,8 +29,13 @@ export interface Worker {
   status: string;
 }
 
-export function getTasks(db: Database): Task[] {
-  return db.query("SELECT id, task_id, description FROM tasks").all() as Task[];
+export function getTasks(db: Database, statusFilter?: string | string[]): Task[] {
+  if (statusFilter) {
+    const statuses = Array.isArray(statusFilter) ? statusFilter : [statusFilter];
+    const placeholders = statuses.map(() => "?").join(", ");
+    return db.query(`SELECT id, task_id, description, status, assigned_to FROM tasks WHERE status IN (${placeholders})`).all(...statuses) as Task[];
+  }
+  return db.query("SELECT id, task_id, description, status, assigned_to FROM tasks").all() as Task[];
 }
 
 export function getWorkers(db: Database): Worker[] {
@@ -35,7 +43,22 @@ export function getWorkers(db: Database): Worker[] {
 }
 
 export function addTask(db: Database, taskId: string, description: string) {
-  db.run("INSERT INTO tasks (task_id, description) VALUES (?, ?)", [taskId, description]);
+  db.run("INSERT INTO tasks (task_id, description, status) VALUES (?, ?, 'ready')", [taskId, description]);
+}
+
+export function completeTask(db: Database, taskId: string): boolean {
+  const result = db.run("UPDATE tasks SET status = 'done' WHERE task_id = ?", [taskId]);
+  return result.changes > 0;
+}
+
+export function assignTask(db: Database, taskId: string, workerName: string): boolean {
+  const result = db.run("UPDATE tasks SET status = 'in-progress', assigned_to = ? WHERE task_id = ?", [workerName, taskId]);
+  return result.changes > 0;
+}
+
+export function unassignTask(db: Database, taskId: string): boolean {
+  const result = db.run("UPDATE tasks SET status = 'ready', assigned_to = NULL WHERE task_id = ?", [taskId]);
+  return result.changes > 0;
 }
 
 export function addWorker(db: Database, workerName: string, status: string = "idle") {
