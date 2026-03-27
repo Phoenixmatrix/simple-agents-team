@@ -9,6 +9,7 @@ Usage:
 
 Commands:
   workers                              List all workers
+  workers json                         List all workers as JSON
   workers add <name> <tmux_target>     Add a worker with tmux target
   workers status <name> <status>       Set a worker's status
   workers clear                        Delete all workers
@@ -43,6 +44,11 @@ const db = openDatabase();
 const action = positionals[0];
 
 switch (action) {
+  case "json": {
+    console.log(JSON.stringify(getWorkers(db)));
+    break;
+  }
+
   case "add": {
     const name = positionals[1];
     const tmuxTarget = positionals[2];
