@@ -38,7 +38,7 @@ await $`tmux new-session -d -s ${sessionName}`.quiet();
 const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
 // Register the worker
-await $`bun workers add ${workerName} ${tmuxTarget} worker`.quiet();
+await $`sat workers add ${workerName} ${tmuxTarget} worker`.quiet();
 
 // Configure status bar for this session
 await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();

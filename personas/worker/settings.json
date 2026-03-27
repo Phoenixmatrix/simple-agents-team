@@ -1,6 +1,9 @@
 {
   "permissions": {
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "allow": [
+      "Bash(sat *)"
+    ]
   },
   "hooks": {
     "SessionStart": [
@@ -9,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/read-persona.ts \"$CLAUDE_PROJECT_DIR\"/personas/worker"
+            "command": "sat hooks read-persona \"$(sat personas worker)\""
           }
         ]
       }
@@ -20,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-busy.ts"
+            "command": "sat hooks worker-busy"
           }
         ]
       }
@@ -31,11 +34,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-idle.ts"
+            "command": "sat hooks worker-idle"
           },
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-loop.ts"
+            "command": "sat hooks worker-loop"
           }
         ]
       }
@@ -46,11 +49,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-idle.ts"
+            "command": "sat hooks worker-idle"
           },
           {
             "type": "command",
-            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-loop.ts"
+            "command": "sat hooks worker-loop"
           }
         ]
       }

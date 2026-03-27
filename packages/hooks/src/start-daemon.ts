@@ -1,3 +1,3 @@
 import { $ } from "bun";
 
-await $`bun daemon`.quiet();
+await $`sat daemon`.quiet();

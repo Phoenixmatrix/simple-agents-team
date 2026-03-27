@@ -1,0 +1,14 @@
+#!/bin/bash
+root="$(cd "$(dirname "$0")/.." && pwd)"
+
+case "$1" in
+  tracker)       shift; cd "$root" && exec bun packages/tracker/src/index.ts "$@" ;;
+  workers)       shift; cd "$root" && exec bun packages/workers/src/index.ts "$@" ;;
+  spawn-worker)  shift; cd "$root" && exec bun packages/sat/src/spawn-worker.ts "$@" ;;
+  get-agent-name) shift; cd "$root" && exec bun packages/sat/src/get-agent-name.ts "$@" ;;
+  daemon)        shift; cd "$root" && exec bun packages/daemon/src/index.ts "$@" ;;
+  hooks)         shift; cd "$root" && exec bun packages/hooks/src/index.ts "$@" ;;
+  personas)      shift; cd "$root" && exec bun packages/sat/src/personas.ts "$@" ;;
+  start)         shift; cd "$root" && exec bun packages/sat/src/index.ts "$@" ;;
+  *)             cd "$root" && exec bun packages/sat/src/index.ts --help ;;
+esac

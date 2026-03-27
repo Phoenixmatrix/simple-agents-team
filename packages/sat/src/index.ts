@@ -18,13 +18,25 @@ const { values } = parseArgs({
 });
 
 if (values.help) {
-  console.log(`sat - simple agents team CLI
+  console.log(`sat - Simple Agents Team CLI
 
 Usage:
-  sat [options]
+  sat <command> [arguments]
+
+Commands:
+  start              Start the coordinator
+  tracker            Task tracker
+  workers            Worker manager
+  spawn-worker       Spawn a new worker agent
+  get-agent-name     Generate a unique agent name
+  daemon             Start the daemon
+  hooks              Run a lifecycle hook
+  personas           Get the path to a persona directory
 
 Options:
-  -h, --help    Show this help message`);
+  -h, --help         Show this help message
+
+Run 'sat <command> --help' for more information on a command.`);
   process.exit(0);
 }
 
@@ -55,8 +67,8 @@ if (!process.env.TMUX) {
 
 // Clear previous state and register coordinator worker
 const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
-await $`bun workers clear`.quiet();
-await $`bun workers add coordinator ${tmuxTarget} coordinator`.quiet();
+await $`sat workers clear`.quiet();
+await $`sat workers add coordinator ${tmuxTarget} coordinator`.quiet();
 
 // Configure tmux status bar for this session
 await $`tmux set-option status-left-length 25`.quiet();
