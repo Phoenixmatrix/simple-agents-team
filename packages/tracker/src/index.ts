@@ -9,6 +9,7 @@ import {
   clearTasks,
   completeTask,
   assignTask,
+  startTask,
   unassignTask,
 } from "./db";
 import * as ui from "./ui";
@@ -23,6 +24,7 @@ Commands:
   tasks ready                    List tasks in ready state only
   tasks show <id>                Show a single task by id
   tasks add <id> <description>   Add a task (status: ready)
+  tasks start <id>               Set a task to in-progress
   tasks done <id>                Mark a task as done
   tasks assign <id> <worker>     Assign a task to a worker
   tasks unassign <id>            Unassign a task's worker
@@ -58,7 +60,7 @@ const action = positionals[1];
 switch (resource) {
   case "tasks": {
     if (!action) {
-      ui.renderTasks(getTasks(db, ["ready", "in-progress"]));
+      ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"]));
     } else if (action === "ready") {
       ui.renderTasks(getTasks(db, "ready"));
     } else if (action === "show") {
@@ -70,6 +72,18 @@ switch (resource) {
       const task = getTask(db, taskId);
       if (task) {
         ui.renderTasks([task]);
+      } else {
+        ui.renderError(`Task ${taskId} not found`);
+        process.exit(1);
+      }
+    } else if (action === "start") {
+      const taskId = positionals[2];
+      if (!taskId) {
+        ui.renderError("Usage: tracker tasks start <id>");
+        process.exit(1);
+      }
+      if (startTask(db, taskId)) {
+        ui.renderSuccess(`Task ${taskId} started`);
       } else {
         ui.renderError(`Task ${taskId} not found`);
         process.exit(1);
@@ -118,8 +132,12 @@ switch (resource) {
         ui.renderError("Usage: tracker tasks add <id> <description>");
         process.exit(1);
       }
-      addTask(db, taskId, desc);
-      ui.renderSuccess(`Added task ${taskId}`);
+      if (addTask(db, taskId, desc)) {
+        ui.renderSuccess(`Added task ${taskId}`);
+      } else {
+        ui.renderError(`Task ${taskId} already exists`);
+        process.exit(1);
+      }
     } else if (action === "delete") {
       const taskId = positionals[2];
       if (!taskId) {
@@ -143,7 +161,7 @@ switch (resource) {
   }
 
   case "status": {
-    ui.renderStatus(getTasks(db, ["ready", "in-progress"]), getWorkers(db));
+    ui.renderStatus(getTasks(db, ["ready", "assigned", "in-progress"]), getWorkers(db));
     break;
   }
 

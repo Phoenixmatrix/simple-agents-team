@@ -8,6 +8,7 @@ export {
   addTask,
   completeTask,
   assignTask,
+  startTask,
   unassignTask,
   deleteTask,
   clearTasks,

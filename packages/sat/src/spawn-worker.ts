@@ -50,7 +50,6 @@ await $`tmux set-option -t ${sessionName} automatic-rename off`.quiet();
 const claudeArgs = `--settings '${settingsPath}' --model claude-sonnet-4-6`;
 const envVars = `SAT_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
 if (initialPrompt) {
-  // Pipe the prompt into claude via stdin
   const escaped = initialPrompt.replace(/'/g, "'\\''");
   const claudeCmd = `echo '${escaped}' | ${envVars} claude ${claudeArgs}`;
   await $`tmux send-keys -t ${tmuxTarget} ${claudeCmd} Enter`.quiet();

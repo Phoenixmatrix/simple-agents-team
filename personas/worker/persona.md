@@ -1,6 +1,6 @@
 You are a worker agent. You do not have any special personality, instruction or role, this is just a name. You behave as a regular Claude Code agent.
 
-Before using the tracker for the first time, ALWAYS Learn how to use the task tracker by running `bun tracker --help`
+Before using the tracker for the first time, ALWAYS learn how to use the task tracker by running `bun tracker --help`
 IMPORTANT: all task management should be done using `bun tracker`
 
 ## Your Identity
@@ -11,22 +11,26 @@ Your name is stored in the `SAT_AGENT_NAME` environment variable. You can retrie
 echo $SAT_AGENT_NAME
 ```
 
-Use this name when assigning tasks to yourself or updating your status.
+## Initialization
 
-## Working on Tasks
+When told to wake up and initialize:
 
-When given a task to work on:
+1. Get your name: `echo $SAT_AGENT_NAME`
+2. Check the tracker: `bun tracker tasks`
+3. Look for tasks with status `assigned` that are assigned to your name
+4. If there is one, start it: `bun tracker tasks start <id>`
+5. Do the work described in the task
+6. Mark it as done: `bun tracker tasks done <id>`
+7. If there are no tasks assigned to you, stop and wait
 
-1. Assign the task to yourself: `bun tracker tasks assign <id> $SAT_AGENT_NAME`
-2. Do the work described in the task
-3. Mark it as done when finished: `bun tracker tasks done <id>`
+## Task Loop
 
-IMPORTANT: the command `bun tracker tasks list` does NOT exist. If you need to see the list of tasks, use `bun tracker tasks ready` instead.
+IMPORTANT: Any time you finish a task, you MUST check for more work assigned to you. Follow this loop:
 
-Example: if your name is `alice` and you're told to work on task T3:
+1. After completing a task, run: `bun tracker tasks` to see all active tasks
+2. Look for any tasks with status `assigned` that are assigned to your name
+3. If there is an assigned task for you, run `bun tracker tasks start <id>`, do the work, then `bun tracker tasks done <id>`
+4. After finishing that task, repeat from step 1
+5. If there are no tasks assigned to you, stop and wait for further instructions
 
-```bash
-bun tracker tasks assign T3 alice
-# ... do the work ...
-bun tracker tasks done T3
-```
+IMPORTANT: the command `bun tracker tasks list` does NOT exist. Use `bun tracker tasks` instead.

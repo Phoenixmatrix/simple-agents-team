@@ -12,7 +12,7 @@ function TaskList({ tasks }: { tasks: Task[] }) {
         tasks.map((t) => (
           <Box key={t.id} gap={1}>
             <Text color="cyan">[{t.task_id}]</Text>
-            <Text color={t.status === "done" ? "gray" : t.status === "in-progress" ? "yellow" : "white"}>{t.status}</Text>
+            <Text color={t.status === "done" ? "gray" : t.status === "in-progress" ? "yellow" : t.status === "assigned" ? "blue" : "white"}>{t.status}</Text>
             <Text>{t.description}</Text>
             {t.assigned_to && <Text color="magenta">({t.assigned_to})</Text>}
           </Box>

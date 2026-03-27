@@ -56,7 +56,6 @@ if (!process.env.TMUX) {
 // Clear previous state and register coordinator worker
 const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 await $`bun workers clear`.quiet();
-await $`bun tracker tasks clear`.quiet();
 await $`bun workers add coordinator ${tmuxTarget}`.quiet();
 
 // Configure tmux status bar for this session

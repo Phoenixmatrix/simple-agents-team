@@ -3,6 +3,17 @@
     "defaultMode": "auto"
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/read-persona.ts \"$CLAUDE_PROJECT_DIR\"/personas/worker"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "matcher": "",
@@ -21,6 +32,10 @@
           {
             "type": "command",
             "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-idle.ts"
+          },
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-loop.ts"
           }
         ]
       }
@@ -32,6 +47,10 @@
           {
             "type": "command",
             "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-idle.ts"
+          },
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/packages/hooks/src/worker-loop.ts"
           }
         ]
       }

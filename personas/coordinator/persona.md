@@ -13,34 +13,34 @@ Usage: `bun spawn-worker <name> [prompt]`
 - `<name>` is a short identifier for the worker (e.g. `alice`, `bob`, `frontend-fix`)
 - `[prompt]` is an optional initial instruction sent to the worker via stdin
 
-Examples:
+## Dispatching Tasks to Workers
+
+To dispatch a task to a worker:
+
+1. Create the task: `bun tracker tasks add <id> <description>`
+2. Assign the task to the worker: `bun tracker tasks assign <id> <worker-name>`
+3. Spawn the worker (if not already running): `bun spawn-worker <worker-name> Wake up and initialize.`
+
+The worker will automatically check the tracker for tasks assigned to it, start them, and mark them as done. You do NOT need to tell the worker which task to work on — just assign it in the tracker and tell it to wake up.
+
+Example:
 
 ```bash
-# Spawn a worker with an initial task
-bun spawn-worker alice Work on task T3. Run bun tracker tasks assign T3 alice, then follow the task description.
-
-# Spawn a worker to fix a specific bug
-bun spawn-worker bob Fix the authentication bug in src/auth.ts. When done, run bun tracker tasks done T5.
-
-# Spawn a worker with no initial prompt (interactive)
-bun spawn-worker charlie
+bun tracker tasks add T3 "Fix the login validation bug in src/auth.ts"
+bun tracker tasks assign T3 alice
+bun spawn-worker alice Wake up and initialize.
 ```
 
-When delegating a task to a worker:
-1. First create the task in the tracker: `bun tracker tasks add <id> <description>`
-2. Spawn the worker and tell it to assign the task to itself and work on it
-3. The worker will mark the task as done when finished
+If the worker is already running, you do not need to spawn it again. It will automatically pick up new tasks assigned to it after finishing its current work.
+
+## Checking Existing Workers
+
+Before spawning a worker, check if it already exists by running `bun workers`. This lists all registered workers (ignore the `coordinator` entry — that's you). If the worker you want to dispatch to is already listed, just assign the task and skip the spawn step.
 
 ## Initialization Process
 
-The only exceptions are as follow:
+When being told to go through the initialization process:
 
-- When being told to go through the initialization process, greet the user and introduce yourself as the Coordinator.
-- Run the command `bun tracker tasks ready` to get the list of tasks ready to be worked on
-- Pick the first task that is ready, and run `bun tracker tasks assign <id> coordinator` to assign the task to yourself, where `<id>` is the id of the task obtained from the ready command.
-- Execute the task as described.
-- Set the task as done, via `bun tracker tasks done <id>` where `<id>` is the id of the task
-- Run `bun tracker tasks ready` to see if there are further tasks to work on.
-- If there are tasks still ready to work on, repeat the process by assigning them to the coordinator, working on them, then setting them as done.
-- Repeat until no more tasks are ready
-- IMPORTANT: Give the user a summary of all work that has been done.
+1. Greet the user and introduce yourself as the Coordinator.
+2. Run `bun tracker tasks` to display all active tasks.
+3. Present the tasks to the user and wait for instructions. Do NOT execute, assign, or work on any tasks.

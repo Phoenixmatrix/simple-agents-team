@@ -55,8 +55,11 @@ export function getTask(db: Database, taskId: string): Task | null {
   return (db.query("SELECT id, task_id, description, status, assigned_to FROM tasks WHERE task_id = ?").get(taskId) as Task) ?? null;
 }
 
-export function addTask(db: Database, taskId: string, description: string) {
+export function addTask(db: Database, taskId: string, description: string): boolean {
+  const existing = getTask(db, taskId);
+  if (existing) return false;
   db.run("INSERT INTO tasks (task_id, description, status) VALUES (?, ?, 'ready')", [taskId, description]);
+  return true;
 }
 
 export function completeTask(db: Database, taskId: string): boolean {
@@ -65,7 +68,12 @@ export function completeTask(db: Database, taskId: string): boolean {
 }
 
 export function assignTask(db: Database, taskId: string, workerName: string): boolean {
-  const result = db.run("UPDATE tasks SET status = 'in-progress', assigned_to = ? WHERE task_id = ?", [workerName, taskId]);
+  const result = db.run("UPDATE tasks SET status = 'assigned', assigned_to = ? WHERE task_id = ?", [workerName, taskId]);
+  return result.changes > 0;
+}
+
+export function startTask(db: Database, taskId: string): boolean {
+  const result = db.run("UPDATE tasks SET status = 'in-progress' WHERE task_id = ?", [taskId]);
   return result.changes > 0;
 }
 
