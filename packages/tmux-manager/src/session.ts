@@ -122,6 +122,13 @@ export class TmuxSession {
   // --- Sending keys ---
 
   /**
+   * Send keys to an arbitrary tmux target (e.g. "sat-alice:0.0").
+   */
+  static async sendKeysToTarget(target: string, keys: string): Promise<void> {
+    await $`tmux send-keys -t ${target} ${keys} Enter`.quiet();
+  }
+
+  /**
    * Send keys to a window. If no window index is given, sends to the active window.
    */
   async sendKeys(keys: string, windowIndex?: number): Promise<void> {

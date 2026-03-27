@@ -10,6 +10,19 @@
         "oxlint": "^1.57.0",
       },
     },
+    "packages/daemon": {
+      "name": "daemon",
+      "version": "1.0.0",
+      "dependencies": {
+        "db": "workspace:*",
+        "ink": "^6.8.0",
+        "react": "^19.2.4",
+        "tmux-manager": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/react": "^19.2.14",
+      },
+    },
     "packages/db": {
       "name": "db",
       "version": "1.0.0",
@@ -138,6 +151,8 @@
     "convert-to-spaces": ["convert-to-spaces@2.0.1", "", {}, "sha512-rcQ1bsQO9799wq24uE5AM2tAILy4gXGIK/njFWcVQkGNZ96edlpY+A7bjwvzjYvLDyzmG1MmMLZhpcsb+klNMQ=="],
 
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
+
+    "daemon": ["daemon@workspace:packages/daemon"],
 
     "db": ["db@workspace:packages/db"],
 

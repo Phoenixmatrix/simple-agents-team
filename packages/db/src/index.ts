@@ -108,6 +108,11 @@ export function updateWorkerStatus(db: Database, workerName: string, status: str
   db.run("UPDATE workers SET status = ? WHERE worker_name = ?", [status, workerName]);
 }
 
+export function removeWorker(db: Database, workerName: string): boolean {
+  const result = db.run("DELETE FROM workers WHERE worker_name = ?", [workerName]);
+  return result.changes > 0;
+}
+
 export function clearWorkers(db: Database) {
   db.run("DELETE FROM workers");
 }

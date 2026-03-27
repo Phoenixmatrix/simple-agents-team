@@ -1,0 +1,15 @@
+{
+  "name": "daemon",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "db": "workspace:*",
+    "tmux-manager": "workspace:*",
+    "ink": "^6.8.0",
+    "react": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14"
+  }
+}

@@ -12,6 +12,7 @@
     "types": ["bun-types"]
   },
   "references": [
+    { "path": "packages/daemon" },
     { "path": "packages/db" },
     { "path": "packages/hooks" },
     { "path": "packages/sat" },
