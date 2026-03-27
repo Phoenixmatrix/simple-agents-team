@@ -1,6 +1,7 @@
 import { parseArgs } from "util";
 import {
   openDatabase,
+  getTask,
   getTasks,
   getWorkers,
   addTask,
@@ -20,6 +21,7 @@ Usage:
 Commands:
   tasks                          List tasks (ready + in-progress)
   tasks ready                    List tasks in ready state only
+  tasks show <id>                Show a single task by id
   tasks add <id> <description>   Add a task (status: ready)
   tasks done <id>                Mark a task as done
   tasks assign <id> <worker>     Assign a task to a worker
@@ -59,6 +61,19 @@ switch (resource) {
       ui.renderTasks(getTasks(db, ["ready", "in-progress"]));
     } else if (action === "ready") {
       ui.renderTasks(getTasks(db, "ready"));
+    } else if (action === "show") {
+      const taskId = positionals[2];
+      if (!taskId) {
+        ui.renderError("Usage: tracker tasks show <id>");
+        process.exit(1);
+      }
+      const task = getTask(db, taskId);
+      if (task) {
+        ui.renderTasks([task]);
+      } else {
+        ui.renderError(`Task ${taskId} not found`);
+        process.exit(1);
+      }
     } else if (action === "done") {
       const taskId = positionals[2];
       if (!taskId) {

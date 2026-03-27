@@ -59,8 +59,10 @@ await $`bun workers clear`.quiet();
 await $`bun tracker tasks clear`.quiet();
 await $`bun workers add coordinator ${tmuxTarget}`.quiet();
 
-// Set window name to show worker identity in tmux status bar
-Bun.spawnSync(["tmux", "rename-window", "🤖 coordinator"], { stdio: ["ignore", "ignore", "ignore"] });
+// Configure tmux status bar for this session
+await $`tmux set-option status-left-length 25`.quiet();
+Bun.spawnSync(["tmux", "set-option", "status-left", " 🤖 coordinator "], { stdio: ["ignore", "ignore", "ignore"] });
+await $`tmux set-option status-right ''`.quiet();
 
 const initialPrompt = "Go through the initialization process";
 

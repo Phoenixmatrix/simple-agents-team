@@ -51,6 +51,10 @@ export function getTasks(db: Database, statusFilter?: string | string[]): Task[]
   return db.query("SELECT id, task_id, description, status, assigned_to FROM tasks").all() as Task[];
 }
 
+export function getTask(db: Database, taskId: string): Task | null {
+  return (db.query("SELECT id, task_id, description, status, assigned_to FROM tasks WHERE task_id = ?").get(taskId) as Task) ?? null;
+}
+
 export function addTask(db: Database, taskId: string, description: string) {
   db.run("INSERT INTO tasks (task_id, description, status) VALUES (?, ?, 'ready')", [taskId, description]);
 }
