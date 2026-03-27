@@ -6,8 +6,9 @@ import { migrate } from "./migrate";
 import * as m001 from "./migrations/001-initial";
 import * as m002 from "./migrations/002-task-status";
 import * as m003 from "./migrations/003-worker-tmux";
+import * as m004 from "./migrations/004-worker-type";
 
-const migrations: Migration[] = [m001, m002, m003];
+const migrations: Migration[] = [m001, m002, m003, m004];
 
 export function getDbPath(): string {
   // Walk up from any package to find the project root data/ dir
@@ -33,9 +34,12 @@ export interface Task {
   assigned_to: string | null;
 }
 
+export type WorkerType = "coordinator" | "daemon" | "worker";
+
 export interface Worker {
   id: number;
   worker_name: string;
+  type: WorkerType;
   status: string;
   tmux_target: string | null;
 }
@@ -60,6 +64,19 @@ export function addTask(db: Database, taskId: string, description: string): bool
   if (existing) return false;
   db.run("INSERT INTO tasks (task_id, description, status) VALUES (?, ?, 'ready')", [taskId, description]);
   return true;
+}
+
+export function createTask(db: Database, prefix: string, description: string): string {
+  const rows = db.query("SELECT task_id FROM tasks WHERE task_id LIKE ? ORDER BY id DESC LIMIT 1").all(`${prefix}-%`) as { task_id: string }[];
+  let next = 1;
+  if (rows.length > 0) {
+    const last = rows[0].task_id.slice(prefix.length + 1);
+    const num = parseInt(last, 10);
+    if (!isNaN(num)) next = num + 1;
+  }
+  const taskId = `${prefix}-${next}`;
+  db.run("INSERT INTO tasks (task_id, description, status) VALUES (?, ?, 'ready')", [taskId, description]);
+  return taskId;
 }
 
 export function completeTask(db: Database, taskId: string): boolean {
@@ -93,14 +110,17 @@ export function clearTasks(db: Database) {
 
 // --- Worker queries ---
 
-export function getWorkers(db: Database): Worker[] {
-  return db.query("SELECT id, worker_name, status, tmux_target FROM workers").all() as Worker[];
+export function getWorkers(db: Database, type?: WorkerType): Worker[] {
+  if (type) {
+    return db.query("SELECT id, worker_name, type, status, tmux_target FROM workers WHERE type = ?").all(type) as Worker[];
+  }
+  return db.query("SELECT id, worker_name, type, status, tmux_target FROM workers").all() as Worker[];
 }
 
-export function addWorker(db: Database, workerName: string, tmuxTarget: string, status: string = "idle") {
+export function addWorker(db: Database, workerName: string, tmuxTarget: string, type: WorkerType, status: string = "idle") {
   db.run(
-    "INSERT INTO workers (worker_name, tmux_target, status) VALUES (?, ?, ?) ON CONFLICT(worker_name) DO UPDATE SET tmux_target = ?, status = ?",
-    [workerName, tmuxTarget, status, tmuxTarget, status],
+    "INSERT INTO workers (worker_name, tmux_target, type, status) VALUES (?, ?, ?, ?) ON CONFLICT(worker_name) DO UPDATE SET tmux_target = ?, type = ?, status = ?",
+    [workerName, tmuxTarget, type, status, tmuxTarget, type, status],
   );
 }
 

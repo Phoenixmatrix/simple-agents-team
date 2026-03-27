@@ -12,6 +12,7 @@ function WorkerList({ workers }: { workers: Worker[] }) {
         workers.map((w) => (
           <Box key={w.id} gap={1}>
             <Text bold color="magenta">{w.worker_name}</Text>
+            <Text color="blue">{w.type}</Text>
             <Text color={w.status === "idle" ? "gray" : "green"}>{w.status}</Text>
             {w.tmux_target && <Text color="cyan">[{w.tmux_target}]</Text>}
           </Box>

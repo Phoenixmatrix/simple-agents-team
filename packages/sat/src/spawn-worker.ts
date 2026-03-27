@@ -38,7 +38,7 @@ await $`tmux new-session -d -s ${sessionName}`.quiet();
 const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
 // Register the worker
-await $`bun workers add ${workerName} ${tmuxTarget}`.quiet();
+await $`bun workers add ${workerName} ${tmuxTarget} worker`.quiet();
 
 // Configure status bar for this session
 await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();
@@ -47,7 +47,7 @@ await $`tmux set-option -t ${sessionName} status-right ''`.quiet();
 await $`tmux set-option -t ${sessionName} automatic-rename off`.quiet();
 
 // Launch claude in the new session
-const claudeArgs = `--settings '${settingsPath}' --model claude-sonnet-4-6`;
+const claudeArgs = `-w --settings '${settingsPath}' --model claude-sonnet-4-6`;
 const envVars = `SAT_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
 if (initialPrompt) {
   const escaped = initialPrompt.replace(/'/g, "'\\''");

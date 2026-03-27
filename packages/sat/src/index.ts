@@ -56,7 +56,7 @@ if (!process.env.TMUX) {
 // Clear previous state and register coordinator worker
 const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 await $`bun workers clear`.quiet();
-await $`bun workers add coordinator ${tmuxTarget}`.quiet();
+await $`bun workers add coordinator ${tmuxTarget} coordinator`.quiet();
 
 // Configure tmux status bar for this session
 await $`tmux set-option status-left-length 25`.quiet();
@@ -65,7 +65,7 @@ await $`tmux set-option status-right ''`.quiet();
 
 const initialPrompt = "Go through the initialization process";
 
-const proc = Bun.spawn(["claude", "--settings", settingsPath, "--model", "claude-sonnet-4-6"], {
+const proc = Bun.spawn(["claude", "--settings", settingsPath], {
   stdin: new TextEncoder().encode(initialPrompt),
   stdout: "inherit",
   stderr: "inherit",

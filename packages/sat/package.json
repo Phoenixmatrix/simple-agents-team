@@ -6,5 +6,8 @@
   },
   "scripts": {
     "start": "exec bun src/index.ts"
+  },
+  "dependencies": {
+    "unique-names-generator": "^4.7.1"
   }
 }

@@ -95,7 +95,7 @@ if (values.app) {
   const tmuxTarget = (await $`tmux display-message -p -t ${SESSION_NAME} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
   // Register in workers
-  await $`bun workers add daemon ${tmuxTarget}`.quiet();
+  await $`bun workers add daemon ${tmuxTarget} daemon`.quiet();
 
   // Configure status bar
   await $`tmux set-option -t ${SESSION_NAME} status-left-length 25`.quiet();

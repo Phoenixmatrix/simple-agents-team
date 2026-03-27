@@ -5,6 +5,7 @@ import {
   getTasks,
   getWorkers,
   addTask,
+  createTask,
   deleteTask,
   clearTasks,
   completeTask,
@@ -23,7 +24,8 @@ Commands:
   tasks                          List tasks (ready + in-progress)
   tasks ready                    List tasks in ready state only
   tasks show <id>                Show a single task by id
-  tasks add <id> <description>   Add a task (status: ready)
+  tasks add <id> <description>   Add a task with explicit id (status: ready)
+  tasks create <prefix> <desc>   Create a task with auto-generated id (returns id)
   tasks start <id>               Set a task to in-progress
   tasks done <id>                Mark a task as done
   tasks assign <id> <worker>     Assign a task to a worker
@@ -138,6 +140,15 @@ switch (resource) {
         ui.renderError(`Task ${taskId} already exists`);
         process.exit(1);
       }
+    } else if (action === "create") {
+      const prefix = positionals[2];
+      const desc = positionals.slice(3).join(" ");
+      if (!prefix || !desc) {
+        ui.renderError("Usage: tracker tasks create <prefix> <description>");
+        process.exit(1);
+      }
+      const taskId = createTask(db, prefix, desc);
+      console.log(taskId);
     } else if (action === "delete") {
       const taskId = positionals[2];
       if (!taskId) {

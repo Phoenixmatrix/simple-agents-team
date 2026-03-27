@@ -8,34 +8,72 @@ When you are told to create a task, create it using the bun tracker, but do not 
 
 You can spawn worker agents to delegate tasks. Each worker runs in its own tmux session with its own Claude Code instance.
 
-Usage: `bun spawn-worker <name> [prompt]`
+### Getting an agent name
 
-- `<name>` is a short identifier for the worker (e.g. `alice`, `bob`, `frontend-fix`)
-- `[prompt]` is an optional initial instruction sent to the worker via stdin
-
-## Dispatching Tasks to Workers
-
-To dispatch a task to a worker:
-
-1. Create the task: `bun tracker tasks add <id> <description>`
-2. Assign the task to the worker: `bun tracker tasks assign <id> <worker-name>`
-3. Spawn the worker (if not already running): `bun spawn-worker <worker-name> Wake up and initialize.`
-
-The worker will automatically check the tracker for tasks assigned to it, start them, and mark them as done. You do NOT need to tell the worker which task to work on — just assign it in the tracker and tell it to wake up.
-
-Example:
+Before spawning a worker, generate a name for it:
 
 ```bash
-bun tracker tasks add T3 "Fix the login validation bug in src/auth.ts"
-bun tracker tasks assign T3 alice
-bun spawn-worker alice Wake up and initialize.
+bun get-agent-name
 ```
 
-If the worker is already running, you do not need to spawn it again. It will automatically pick up new tasks assigned to it after finishing its current work.
+This outputs a unique name. **Do NOT make up worker names yourself** — always use `bun get-agent-name` to obtain one.
 
-## Checking Existing Workers
+### Spawning a worker
 
-Before spawning a worker, check if it already exists by running `bun workers`. This lists all registered workers (ignore the `coordinator` entry — that's you). If the worker you want to dispatch to is already listed, just assign the task and skip the spawn step.
+Usage: `bun spawn-worker <name> [prompt]`
+
+- `<name>` is the name obtained from `bun get-agent-name`
+- `[prompt]` is an optional initial instruction sent to the worker via stdin
+
+### Delegating Work
+
+When you need to delegate work, **always start by checking the current worker pool**:
+
+```bash
+bun workers list
+```
+
+This lists all workers (excluding coordinator and daemon) with their current status (e.g. `idle`, `busy`).
+
+Based on the output, decide the best strategy:
+
+1. **Assign to an idle worker** — if a worker is idle, prefer reusing it. Assign the task and wake it up.
+2. **Assign to a busy worker** — if the new task is closely related to what a busy worker is already doing and cannot be parallelized (e.g. depends on the same files), assign it to that worker. It will pick it up after finishing its current work.
+3. **Spawn a new worker** — if all workers are busy with unrelated work and the new task can run in parallel, spawn a new worker to maximize throughput.
+
+#### Creating tasks
+
+**Always use `bun tracker tasks create` to create tasks** — this auto-generates a unique task ID from a prefix and returns it. Do NOT use `tasks add` with a manually chosen ID.
+
+```bash
+task_id=$(bun tracker tasks create T "Fix the login validation bug in src/auth.ts")
+```
+
+This prints the generated ID (e.g. `T-1`, `T-2`, etc.) which you can then use for assignment.
+
+#### Dispatching to an existing worker
+
+```bash
+task_id=$(bun tracker tasks create T "Fix the login validation bug in src/auth.ts")
+bun tracker tasks assign "$task_id" existing-worker-name
+```
+
+If the worker is idle, also wake it up:
+
+```bash
+bun spawn-worker existing-worker-name Wake up and initialize.
+```
+
+#### Spawning a new worker
+
+```bash
+name=$(bun get-agent-name)
+task_id=$(bun tracker tasks create T "Fix the login validation bug in src/auth.ts")
+bun tracker tasks assign "$task_id" "$name"
+bun spawn-worker "$name" Wake up and initialize.
+```
+
+If you just need to spawn a worker without a task assignment, skip the tracker steps.
 
 ## Initialization Process
 

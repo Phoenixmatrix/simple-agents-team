@@ -10,7 +10,8 @@ Usage:
 Commands:
   workers                              List all workers
   workers json                         List all workers as JSON
-  workers add <name> <tmux_target>     Add a worker with tmux target
+  workers list                         List workers (type=worker) for agent use
+  workers add <name> <tmux_target> <type>  Add a worker (type: coordinator, daemon, worker)
   workers status <name> <status>       Set a worker's status
   workers clear                        Delete all workers
 
@@ -49,15 +50,32 @@ switch (action) {
     break;
   }
 
+  case "list": {
+    const workers = getWorkers(db, "worker");
+    if (workers.length === 0) {
+      console.log("No workers available.");
+    } else {
+      for (const w of workers) {
+        console.log(`${w.worker_name} [${w.status}]`);
+      }
+    }
+    break;
+  }
+
   case "add": {
     const name = positionals[1];
     const tmuxTarget = positionals[2];
-    if (!name || !tmuxTarget) {
-      ui.renderError("Usage: workers add <name> <tmux_target>");
+    const type = positionals[3] as import("db").WorkerType;
+    if (!name || !tmuxTarget || !type) {
+      ui.renderError("Usage: workers add <name> <tmux_target> <type>");
       process.exit(1);
     }
-    addWorker(db, name, tmuxTarget);
-    ui.renderSuccess(`Added worker ${name} (tmux:${tmuxTarget})`);
+    if (!["coordinator", "daemon", "worker"].includes(type)) {
+      ui.renderError(`Invalid type "${type}". Must be: coordinator, daemon, worker`);
+      process.exit(1);
+    }
+    addWorker(db, name, tmuxTarget, type);
+    ui.renderSuccess(`Added ${type} ${name} (tmux:${tmuxTarget})`);
     break;
   }
 

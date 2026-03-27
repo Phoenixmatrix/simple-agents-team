@@ -6,6 +6,7 @@ export {
   getTasks,
   getWorkers,
   addTask,
+  createTask,
   completeTask,
   assignTask,
   startTask,
