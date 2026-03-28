@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sat *)"
+      "Bash(sat *)",
+      "Bash(echo $SAT_AGENT_NAME)"
     ]
   },
   "hooks": {

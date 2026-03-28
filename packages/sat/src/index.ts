@@ -28,6 +28,7 @@ Commands:
   tracker            Task tracker
   workers            Worker manager
   spawn-worker       Spawn a new worker agent
+  spawn-release      Spawn the release agent
   get-agent-name     Generate a unique agent name
   daemon             Start the daemon
   hooks              Run a lifecycle hook
@@ -74,6 +75,9 @@ await $`sat workers add coordinator ${tmuxTarget} coordinator`.quiet();
 await $`tmux set-option status-left-length 25`.quiet();
 Bun.spawnSync(["tmux", "set-option", "status-left", " 🤖 coordinator "], { stdio: ["ignore", "ignore", "ignore"] });
 await $`tmux set-option status-right ''`.quiet();
+
+// Spawn the release agent
+await $`sat spawn-release`.quiet();
 
 const initialPrompt = "Go through the initialization process";
 

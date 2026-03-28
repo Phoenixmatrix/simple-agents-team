@@ -11,6 +11,7 @@
     "workers": "bun packages/workers/src/index.ts",
     "get-agent-name": "bun packages/sat/src/get-agent-name.ts",
     "spawn-worker": "bun packages/sat/src/spawn-worker.ts",
+    "spawn-release": "bun packages/sat/src/spawn-release.ts",
     "daemon": "bun packages/daemon/src/index.ts",
     "hooks": "bun packages/hooks/src/index.ts",
     "personas": "bun packages/sat/src/personas.ts"

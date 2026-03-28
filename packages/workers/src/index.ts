@@ -70,8 +70,8 @@ switch (action) {
       ui.renderError("Usage: workers add <name> <tmux_target> <type>");
       process.exit(1);
     }
-    if (!["coordinator", "daemon", "worker"].includes(type)) {
-      ui.renderError(`Invalid type "${type}". Must be: coordinator, daemon, worker`);
+    if (!["coordinator", "daemon", "worker", "release"].includes(type)) {
+      ui.renderError(`Invalid type "${type}". Must be: coordinator, daemon, worker, release`);
       process.exit(1);
     }
     addWorker(db, name, tmuxTarget, type);

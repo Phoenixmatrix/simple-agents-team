@@ -34,7 +34,7 @@ export interface Task {
   assigned_to: string | null;
 }
 
-export type WorkerType = "coordinator" | "daemon" | "worker";
+export type WorkerType = "coordinator" | "daemon" | "worker" | "release";
 
 export interface Worker {
   id: number;
