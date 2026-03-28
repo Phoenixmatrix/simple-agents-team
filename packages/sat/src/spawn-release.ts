@@ -3,12 +3,13 @@ import { $ } from "bun";
 
 const rootDir = resolve(dirname(Bun.main), "../../..");
 const settingsPath = resolve(rootDir, "personas/release/settings.json");
+const cwd = process.env.SAT_CWD || process.cwd();
 
 const workerName = "release";
 const sessionName = `sat-${workerName}`;
 
-// Create a new detached tmux session
-await $`tmux new-session -d -s ${sessionName}`.quiet();
+// Create a new detached tmux session in the caller's working directory
+await $`tmux new-session -d -s ${sessionName} -c ${cwd}`.quiet();
 
 // Get the tmux target
 const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();

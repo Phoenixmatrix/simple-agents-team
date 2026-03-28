@@ -3,6 +3,7 @@
     "defaultMode": "auto",
     "allow": [
       "Bash(sat *)",
+      "Bash(git *)",
       "Bash(echo $SAT_AGENT_NAME)"
     ]
   },

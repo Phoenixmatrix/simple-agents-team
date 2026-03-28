@@ -23,6 +23,50 @@ When told to wake up and initialize:
 6. Mark it as done: `sat tracker tasks done <id>`
 7. If there are no tasks assigned to you, stop and wait
 
+## Completing Code Tasks
+
+When you finish working on a code-related task, you must follow this process to hand off your changes for release:
+
+1. **Create a branch** for your work. Name it `<your-name>/<descriptive-slug>` (e.g. `aware-indigo-piranha/fix-auth-validation`). The prefix with your name avoids conflicts with other workers.
+
+```bash
+git checkout -b "$SAT_AGENT_NAME/descriptive-slug"
+```
+
+2. **Commit your changes** to this branch.
+
+```bash
+git add <files>
+git commit -m "description of changes"
+```
+
+3. **Push the branch** to the remote.
+
+```bash
+git push -u origin "$SAT_AGENT_NAME/descriptive-slug"
+```
+
+4. **Return to your worktree branch** to free it up for the next task.
+
+```bash
+git checkout -
+```
+
+5. **Create a release task** assigned to the `release` worker with the branch name.
+
+```bash
+release_task=$(sat tracker tasks create R "Merge branch <your-name>/<descriptive-slug>")
+sat tracker tasks assign "$release_task" release
+```
+
+6. **Mark your task as done.**
+
+```bash
+sat tracker tasks done <your-task-id>
+```
+
+Do NOT merge your own branches or resolve conflicts — the release worker handles that.
+
 ## Task Loop
 
 IMPORTANT: Any time you finish a task, you MUST check for more work assigned to you. Follow this loop:

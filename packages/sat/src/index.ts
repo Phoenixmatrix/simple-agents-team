@@ -5,6 +5,7 @@ import { $ } from "bun";
 const rootDir = resolve(dirname(Bun.main), "../../..");
 const settingsPath = resolve(rootDir, "personas/coordinator/settings.json");
 const SESSION_NAME = "sat";
+const cwd = process.env.SAT_CWD || process.cwd();
 
 const { values } = parseArgs({
   args: Bun.argv.slice(2),
@@ -57,7 +58,7 @@ if (!process.env.TMUX) {
     });
     process.exit(proc.exitCode);
   } else {
-    const proc = Bun.spawnSync(["tmux", "new-session", "-s", SESSION_NAME, "--", "bun", "sat"], {
+    const proc = Bun.spawnSync(["tmux", "new-session", "-c", cwd, "-s", SESSION_NAME, "--", "sat", "start"], {
       stdin: "inherit",
       stdout: "inherit",
       stderr: "inherit",
@@ -82,6 +83,7 @@ await $`sat spawn-release`.quiet();
 const initialPrompt = "Go through the initialization process";
 
 const proc = Bun.spawn(["claude", "--settings", settingsPath], {
+  cwd,
   stdin: new TextEncoder().encode(initialPrompt),
   stdout: "inherit",
   stderr: "inherit",
