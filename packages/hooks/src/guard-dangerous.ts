@@ -4,6 +4,8 @@
 //
 // Exit codes: 0 = allowed, 2 = BLOCKED
 
+export {};
+
 const input = await Bun.stdin.text();
 
 interface HookInput {
@@ -31,7 +33,7 @@ function block(reason: string): never {
   console.error("╔══════════════════════════════════════════════════════════════════╗");
   console.error("║  DANGEROUS COMMAND BLOCKED                                      ║");
   console.error("╠══════════════════════════════════════════════════════════════════╣");
-  console.error(`║  Command: ${truncate(command, 53).padEnd(53)} ║`);
+  console.error(`║  Command: ${truncate(command!, 53).padEnd(53)} ║`);
   console.error(`║  Reason:  ${truncate(reason, 53).padEnd(53)} ║`);
   console.error("║                                                                  ║");
   console.error("║  If this is intentional, ask the user to run it manually.        ║");

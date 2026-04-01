@@ -3,6 +3,7 @@ import {
   openDatabase,
   getTask,
   getTasks,
+  getTasksForWorker,
   getWorkers,
   addTask,
   createTask,
@@ -22,6 +23,7 @@ Usage:
 
 Commands:
   tasks                          List tasks (ready + in-progress)
+  tasks me                       List tasks assigned to me (reads SAT_AGENT_NAME)
   tasks ready                    List tasks in ready state only
   tasks show <id>                Show a single task by id
   tasks add <id> <description>   Add a task with explicit id (status: ready)
@@ -63,6 +65,13 @@ switch (resource) {
   case "tasks": {
     if (!action) {
       ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"]));
+    } else if (action === "me") {
+      const workerName = process.env.SAT_AGENT_NAME;
+      if (!workerName) {
+        ui.renderError("SAT_AGENT_NAME environment variable is not set");
+        process.exit(1);
+      }
+      ui.renderTasks(getTasksForWorker(db, workerName));
     } else if (action === "ready") {
       ui.renderTasks(getTasks(db, "ready"));
     } else if (action === "show") {

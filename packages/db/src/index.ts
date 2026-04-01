@@ -55,6 +55,10 @@ export function getTasks(db: Database, statusFilter?: string | string[]): Task[]
   return db.query("SELECT id, task_id, description, status, assigned_to FROM tasks").all() as Task[];
 }
 
+export function getTasksForWorker(db: Database, workerName: string): Task[] {
+  return db.query("SELECT id, task_id, description, status, assigned_to FROM tasks WHERE assigned_to = ? AND status IN ('assigned', 'in-progress')").all(workerName) as Task[];
+}
+
 export function getTask(db: Database, taskId: string): Task | null {
   return (db.query("SELECT id, task_id, description, status, assigned_to FROM tasks WHERE task_id = ?").get(taskId) as Task) ?? null;
 }

@@ -4,6 +4,7 @@ export {
   type Worker,
   getTask,
   getTasks,
+  getTasksForWorker,
   getWorkers,
   addTask,
   createTask,
