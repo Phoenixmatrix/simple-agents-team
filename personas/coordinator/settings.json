@@ -1,11 +1,23 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(sat *)",
       "Bash(echo $SAT_AGENT_NAME)"
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sat hooks guard-dangerous"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "",

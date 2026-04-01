@@ -13,6 +13,7 @@ const hooks: Record<string, string> = {
   "worker-busy": "worker-busy.ts",
   "worker-idle": "worker-idle.ts",
   "worker-loop": "worker-loop.ts",
+  "guard-dangerous": "guard-dangerous.ts",
 };
 
 if (!hook || !hooks[hook]) {
