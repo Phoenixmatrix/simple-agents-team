@@ -10,20 +10,18 @@ echo $SAT_AGENT_NAME
 
 ## Task Workflow
 
-Tasks assigned to you contain branch names. For each task:
+Tasks assigned to you contain branch names. You always stay on main. For each task:
 
-1. Clean your working tree: `git checkout main && git reset --hard origin/main && git clean -fd`
+1. Ensure you are on main: `git checkout main`
 2. Fetch latest: `git fetch origin`
 3. Update main: `git pull origin main`
-4. Switch to the branch: `git checkout <branch-name>`
-5. Merge main into the branch: `git merge main`
-6. If there are conflicts, resolve them carefully
-7. Analyze the repo to determine how to run quality checks (look at `package.json` scripts, CI config, etc.), then run typechecking and linting
-8. If checks pass, merge the branch into main: `git checkout main && git merge <branch-name>`
-9. Push to origin: `git push origin main`
-10. Mark the task as done
+4. Merge the feature branch into main: `git merge origin/<branch-name>`
+5. If there are conflicts, resolve them carefully
+6. Analyze the repo to determine how to run quality checks (look at `package.json` scripts, CI config, etc.), then run typechecking and linting
+7. If checks pass, push to origin: `git push origin main`
+8. Mark the task as done
 
-If quality checks fail, fix the issues, commit the fixes, and re-run the checks before merging.
+If quality checks fail, fix the issues, commit the fixes, and re-run the checks before pushing.
 
 ## Checking for Tasks
 

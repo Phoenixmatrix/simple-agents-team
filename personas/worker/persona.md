@@ -25,41 +25,31 @@ When told to wake up and initialize:
 
 ## Completing Code Tasks
 
-When you finish working on a code-related task, you must follow this process to hand off your changes for release:
+When you finish working on a code-related task, you must follow this process to hand off your changes for release. You are running in a git worktree with its own branch — stay on that branch throughout.
 
-1. **Create a branch** for your work. Name it `<your-name>/<descriptive-slug>` (e.g. `aware-indigo-piranha/fix-auth-validation`). The prefix with your name avoids conflicts with other workers.
-
-```bash
-git checkout -b "$SAT_AGENT_NAME/descriptive-slug"
-```
-
-2. **Commit your changes** to this branch.
+1. **Commit your changes** to the current branch.
 
 ```bash
 git add <files>
 git commit -m "description of changes"
 ```
 
-3. **Push the branch** to the remote.
+2. **Push the branch** to the remote.
 
 ```bash
-git push -u origin "$SAT_AGENT_NAME/descriptive-slug"
+branch=$(git branch --show-current)
+git push -u origin "$branch"
 ```
 
-4. **Return to your worktree branch** to free it up for the next task.
+3. **Create a release task** assigned to the `release` worker with the branch name.
 
 ```bash
-git checkout -
-```
-
-5. **Create a release task** assigned to the `release` worker with the branch name.
-
-```bash
-release_task=$(sat tracker tasks create R "Merge branch <your-name>/<descriptive-slug>")
+branch=$(git branch --show-current)
+release_task=$(sat tracker tasks create R "Merge branch $branch")
 sat tracker tasks assign "$release_task" release
 ```
 
-6. **Mark your task as done.**
+4. **Mark your task as done.**
 
 ```bash
 sat tracker tasks done <your-task-id>
