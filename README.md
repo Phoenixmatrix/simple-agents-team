@@ -6,13 +6,7 @@ A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and
 
 ## Install
 
-Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/simple-agents-team/releases). Since this is a private repo, you need a GitHub token with `repo` scope (a classic PAT, or a fine-grained token with Contents read access).
-
-Set your token:
-
-```bash
-export GH_TOKEN="ghp_..."
-```
+Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/simple-agents-team/releases). Since this is a private repo, you need to be authenticated. The easiest way is with the `gh` CLI (which uses your existing `gh auth login` session).
 
 **Linux (x64):**
 
@@ -26,7 +20,11 @@ gh release download --repo Phoenixmatrix/simple-agents-team --pattern 'sat-linux
 gh release download --repo Phoenixmatrix/simple-agents-team --pattern 'sat-darwin-arm64' && chmod +x sat-darwin-arm64 && mv sat-darwin-arm64 sat
 ```
 
-**Linux (x64) without `gh` CLI:**
+**Without `gh` CLI**, set a GitHub token with `repo` scope and use curl:
+
+```bash
+export GH_TOKEN="ghp_..."
+```
 
 ```bash
 curl -fsSL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" \
