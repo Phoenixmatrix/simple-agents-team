@@ -30,10 +30,10 @@ Look at the `portfolio` field in the JSON output. You will need it for the next 
 
 ### 2. Create and switch to a working branch
 
-If your task has a portfolio, use the portfolio name as a prefix for your branch:
+If your task has a portfolio, the branch name **must be exactly the portfolio name** — nothing else:
 
 ```bash
-git checkout -b <portfolio-name>/<short-description>
+git checkout -b <portfolio-name>
 ```
 
 If your task has no portfolio, choose any descriptive branch name:
