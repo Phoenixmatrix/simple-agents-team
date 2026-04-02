@@ -1,6 +1,6 @@
-import { resolve, dirname } from "path";
 import { $ } from "bun";
 import type { Command } from "./command";
+import { getSettingsPath } from "./personas-data";
 
 import { command as tracker } from "tracker";
 import { command as workers } from "workers";
@@ -58,8 +58,7 @@ if (!subcommand || subcommand === "-h" || subcommand === "--help") {
 
 if (subcommand === "start") {
   // Start the coordinator — special case, not a subcommand
-  const rootDir = resolve(dirname(Bun.main), "../../..");
-  const settingsPath = resolve(rootDir, "personas/coordinator/settings.json");
+  const settingsPath = getSettingsPath("coordinator");
   const cwd = process.env.SAT_CWD || process.cwd();
 
   // If not inside tmux, create or attach to a tmux session

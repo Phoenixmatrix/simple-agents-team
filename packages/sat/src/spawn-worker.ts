@@ -1,6 +1,6 @@
 import { parseArgs } from "util";
-import { resolve, dirname } from "path";
 import { $ } from "bun";
+import { getSettingsPath } from "./personas-data";
 
 async function run(args: string[]) {
   const { values, positionals } = parseArgs({
@@ -22,8 +22,7 @@ Options:
     return;
   }
 
-  const rootDir = resolve(dirname(Bun.main), "../../..");
-  const settingsPath = resolve(rootDir, "personas/worker/settings.json");
+  const settingsPath = getSettingsPath("worker");
   const cwd = process.env.SAT_CWD || process.cwd();
 
   const workerName = positionals[0];

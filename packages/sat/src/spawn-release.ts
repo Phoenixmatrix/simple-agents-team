@@ -1,9 +1,8 @@
-import { resolve, dirname } from "path";
 import { $ } from "bun";
+import { getSettingsPath } from "./personas-data";
 
 async function run(_args: string[]) {
-  const rootDir = resolve(dirname(Bun.main), "../../..");
-  const settingsPath = resolve(rootDir, "personas/release/settings.json");
+  const settingsPath = getSettingsPath("release");
   const cwd = process.env.SAT_CWD || process.cwd();
 
   const workerName = "release";

@@ -1,7 +1,6 @@
-import { resolve, dirname } from "path";
+import { getPersonaDir } from "./personas-data";
 
 async function run(args: string[]) {
-  const rootDir = resolve(dirname(Bun.main), "../../..");
   const name = args[0];
 
   if (!name) {
@@ -9,8 +8,7 @@ async function run(args: string[]) {
     process.exit(1);
   }
 
-  const personaDir = resolve(rootDir, "personas", name);
-  console.log(personaDir);
+  console.log(getPersonaDir(name));
 }
 
 export const command = {
