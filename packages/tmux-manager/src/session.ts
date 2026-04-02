@@ -122,7 +122,7 @@ export class TmuxSession {
   // --- Sending keys ---
 
   /**
-   * Send keys to an arbitrary tmux target (e.g. "sat-alice:0.0").
+   * Send keys to an arbitrary tmux target (e.g. "px-alice:0.0").
    */
   static async sendKeysToTarget(target: string, keys: string): Promise<void> {
     await $`tmux send-keys -t ${target} ${keys} Enter`.quiet();

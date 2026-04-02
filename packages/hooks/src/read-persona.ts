@@ -6,7 +6,7 @@ if (!personaDir) {
   process.exit(1);
 }
 
-const agentName = process.env.SAT_AGENT_NAME;
+const agentName = process.env.PX_AGENT_NAME;
 if (agentName) {
   console.log(`Your name is **${agentName}**.`);
   console.log();

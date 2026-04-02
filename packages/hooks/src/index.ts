@@ -16,7 +16,7 @@ async function run(args: string[]) {
 
   if (!hook || !hooks[hook]) {
     const available = Object.keys(hooks).join(", ");
-    console.error(`Usage: sat hooks <hook> [args]\n\nAvailable hooks: ${available}`);
+    console.error(`Usage: px hooks <hook> [args]\n\nAvailable hooks: ${available}`);
     process.exit(1);
   }
 

@@ -14,13 +14,13 @@ jobs:
         include:
           - os: ubuntu-latest
             target: bun-linux-x64
-            artifact: sat-linux-x64
+            artifact: px-linux-x64
           - os: ubuntu-latest
             target: bun-linux-arm64
-            artifact: sat-linux-arm64
+            artifact: px-linux-arm64
           - os: macos-latest
             target: bun-darwin-arm64
-            artifact: sat-darwin-arm64
+            artifact: px-darwin-arm64
 
     runs-on: ${{ matrix.os }}
 
@@ -33,7 +33,7 @@ jobs:
 
       - name: Build standalone binary
         run: |
-          bun build packages/sat/src/index.ts \
+          bun build packages/px/src/index.ts \
             --compile \
             --target ${{ matrix.target }} \
             --outfile ${{ matrix.artifact }}
@@ -65,8 +65,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          chmod +x artifacts/sat-*
+          chmod +x artifacts/px-*
           gh release create "${{ steps.version.outputs.tag }}" \
-            --title "SAT ${{ steps.version.outputs.tag }}" \
+            --title "px ${{ steps.version.outputs.tag }}" \
             --generate-notes \
-            artifacts/sat-*
+            artifacts/px-*

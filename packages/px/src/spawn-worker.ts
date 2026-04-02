@@ -12,10 +12,10 @@ async function run(args: string[]) {
   });
 
   if (values.help || positionals.length === 0) {
-    console.log(`sat spawn-worker - Spawn a new SAT worker agent in a tmux session
+    console.log(`px spawn-worker - Spawn a new px worker agent in a tmux session
 
 Usage:
-  sat spawn-worker <name> [prompt]
+  px spawn-worker <name> [prompt]
 
 Options:
   -h, --help    Show this help message`);
@@ -23,11 +23,11 @@ Options:
   }
 
   const settingsPath = getSettingsPath("worker");
-  const cwd = process.env.SAT_CWD || process.cwd();
+  const cwd = process.env.PX_CWD || process.cwd();
 
   const workerName = positionals[0];
   const initialPrompt = positionals.slice(1).join(" ") || undefined;
-  const sessionName = `sat-${workerName}`;
+  const sessionName = `px-${workerName}`;
 
   // Create a new detached tmux session in the caller's working directory
   await $`tmux new-session -d -s ${sessionName} -c ${cwd}`.quiet();
@@ -36,7 +36,7 @@ Options:
   const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
   // Register the worker
-  await $`sat workers add ${workerName} ${tmuxTarget} worker`.quiet();
+  await $`px workers add ${workerName} ${tmuxTarget} worker`.quiet();
 
   // Configure status bar for this session
   await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();
@@ -46,7 +46,7 @@ Options:
 
   // Launch claude in the new session
   const claudeArgs = `-w --settings '${settingsPath}' --model claude-sonnet-4-6`;
-  const envVars = `SAT_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
+  const envVars = `PX_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
   if (initialPrompt) {
     const escaped = initialPrompt.replace(/'/g, "'\\''");
     const claudeCmd = `echo '${escaped}' | ${envVars} claude ${claudeArgs}`;

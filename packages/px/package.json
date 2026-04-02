@@ -1,8 +1,8 @@
 {
-  "name": "sat",
+  "name": "px",
   "version": "1.0.0",
   "bin": {
-    "sat": "src/index.ts"
+    "px": "src/index.ts"
   },
   "scripts": {
     "start": "exec bun src/index.ts"

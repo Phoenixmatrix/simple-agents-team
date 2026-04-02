@@ -2,8 +2,8 @@
   "permissions": {
     "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(sat *)",
-      "Bash(echo $SAT_AGENT_NAME)"
+      "Bash(px *)",
+      "Bash(echo $PX_AGENT_NAME)"
     ]
   },
   "hooks": {
@@ -13,7 +13,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks guard-dangerous"
+            "command": "px hooks guard-dangerous"
           }
         ]
       }
@@ -24,15 +24,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks session-start"
+            "command": "px hooks session-start"
           },
           {
             "type": "command",
-            "command": "sat hooks read-persona \"$(sat personas coordinator)\""
+            "command": "px hooks read-persona \"$(px personas coordinator)\""
           },
           {
             "type": "command",
-            "command": "sat hooks start-daemon"
+            "command": "px hooks start-daemon"
           }
         ]
       }
@@ -43,7 +43,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-busy"
+            "command": "px hooks worker-busy"
           }
         ]
       }
@@ -54,7 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-idle"
+            "command": "px hooks worker-idle"
           }
         ]
       }
@@ -65,7 +65,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-idle"
+            "command": "px hooks worker-idle"
           }
         ]
       }
@@ -76,7 +76,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks session-end"
+            "command": "px hooks session-end"
           }
         ]
       }

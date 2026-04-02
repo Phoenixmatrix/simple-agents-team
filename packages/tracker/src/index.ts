@@ -21,11 +21,11 @@ import * as ui from "./ui";
 
 // --- Session portfolio helpers ---
 
-const SAT_DIR = resolve(process.env.HOME ?? "~", ".sat");
+const PX_DIR = resolve(process.env.HOME ?? "~", ".px");
 
 function getPortfolioFilePath(): string {
-  const agentName = process.env.SAT_AGENT_NAME ?? "default";
-  return resolve(SAT_DIR, `portfolio-${agentName}`);
+  const agentName = process.env.PX_AGENT_NAME ?? "default";
+  return resolve(PX_DIR, `portfolio-${agentName}`);
 }
 
 function getSessionPortfolio(): string | null {
@@ -35,7 +35,7 @@ function getSessionPortfolio(): string | null {
 }
 
 function setSessionPortfolio(name: string): void {
-  mkdirSync(SAT_DIR, { recursive: true });
+  mkdirSync(PX_DIR, { recursive: true });
   writeFileSync(getPortfolioFilePath(), name);
 }
 
@@ -62,14 +62,14 @@ function resolvePortfolio(explicit?: string): string | undefined {
 
 // --- CLI ---
 
-const HELP = `sat tracker - Task and worker tracker
+const HELP = `px tracker - Task and worker tracker
 
 Usage:
-  sat tracker <resource> [action] [arguments]
+  px tracker <resource> [action] [arguments]
 
 Commands:
   tasks                          List tasks (ready + in-progress)
-  tasks me                       List tasks assigned to me (reads SAT_AGENT_NAME)
+  tasks me                       List tasks assigned to me (reads PX_AGENT_NAME)
   tasks ready                    List tasks in ready state only
   tasks show <id>                Show a single task by id
   tasks json                     Output all active tasks as JSON
@@ -118,7 +118,7 @@ async function run(args: string[]) {
     if (action === "open") {
       const name = positionals[2];
       if (!name) {
-        ui.renderError("Usage: sat tracker portfolio open <name>");
+        ui.renderError("Usage: px tracker portfolio open <name>");
         process.exit(1);
       }
       if (!validatePortfolioName(name)) {
@@ -151,9 +151,9 @@ async function run(args: string[]) {
         if (!action) {
           ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"]));
         } else if (action === "me") {
-          const workerName = process.env.SAT_AGENT_NAME;
+          const workerName = process.env.PX_AGENT_NAME;
           if (!workerName) {
-            ui.renderError("SAT_AGENT_NAME environment variable is not set");
+            ui.renderError("PX_AGENT_NAME environment variable is not set");
             process.exit(1);
           }
           ui.renderTasks(getTasksForWorker(db, workerName));
@@ -161,9 +161,9 @@ async function run(args: string[]) {
           const sub = positionals[2];
           let tasks;
           if (sub === "me") {
-            const workerName = process.env.SAT_AGENT_NAME;
+            const workerName = process.env.PX_AGENT_NAME;
             if (!workerName) {
-              console.error("SAT_AGENT_NAME environment variable is not set");
+              console.error("PX_AGENT_NAME environment variable is not set");
               process.exit(1);
             }
             tasks = getTasksForWorker(db, workerName);
@@ -176,7 +176,7 @@ async function run(args: string[]) {
         } else if (action === "show") {
           const taskId = positionals[2];
           if (!taskId) {
-            ui.renderError("Usage: sat tracker tasks show <id>");
+            ui.renderError("Usage: px tracker tasks show <id>");
             process.exit(1);
           }
           const task = getTask(db, taskId);
@@ -189,7 +189,7 @@ async function run(args: string[]) {
         } else if (action === "start") {
           const taskId = positionals[2];
           if (!taskId) {
-            ui.renderError("Usage: sat tracker tasks start <id>");
+            ui.renderError("Usage: px tracker tasks start <id>");
             process.exit(1);
           }
           const result = startTask(db, taskId);
@@ -205,7 +205,7 @@ async function run(args: string[]) {
         } else if (action === "done") {
           const taskId = positionals[2];
           if (!taskId) {
-            ui.renderError("Usage: sat tracker tasks done <id>");
+            ui.renderError("Usage: px tracker tasks done <id>");
             process.exit(1);
           }
           if (completeTask(db, taskId)) {
@@ -218,7 +218,7 @@ async function run(args: string[]) {
           const taskId = positionals[2];
           const workerName = positionals.slice(3).join(" ");
           if (!taskId || !workerName) {
-            ui.renderError("Usage: sat tracker tasks assign <id> <worker>");
+            ui.renderError("Usage: px tracker tasks assign <id> <worker>");
             process.exit(1);
           }
           if (assignTask(db, taskId, workerName)) {
@@ -230,7 +230,7 @@ async function run(args: string[]) {
         } else if (action === "unassign") {
           const taskId = positionals[2];
           if (!taskId) {
-            ui.renderError("Usage: sat tracker tasks unassign <id>");
+            ui.renderError("Usage: px tracker tasks unassign <id>");
             process.exit(1);
           }
           if (unassignTask(db, taskId)) {
@@ -243,7 +243,7 @@ async function run(args: string[]) {
           const taskId = positionals[2];
           const desc = positionals.slice(3).join(" ");
           if (!taskId || !desc) {
-            ui.renderError("Usage: sat tracker tasks add <id> <description>");
+            ui.renderError("Usage: px tracker tasks add <id> <description>");
             process.exit(1);
           }
           const portfolio = resolvePortfolio(values.portfolio);
@@ -261,7 +261,7 @@ async function run(args: string[]) {
           const prefix = positionals[2];
           const desc = positionals.slice(3).join(" ");
           if (!prefix || !desc) {
-            ui.renderError("Usage: sat tracker tasks create <prefix> <description>");
+            ui.renderError("Usage: px tracker tasks create <prefix> <description>");
             process.exit(1);
           }
           const portfolio = resolvePortfolio(values.portfolio);
@@ -274,7 +274,7 @@ async function run(args: string[]) {
         } else if (action === "delete") {
           const taskId = positionals[2];
           if (!taskId) {
-            ui.renderError("Usage: sat tracker tasks delete <id>");
+            ui.renderError("Usage: px tracker tasks delete <id>");
             process.exit(1);
           }
           if (deleteTask(db, taskId)) {

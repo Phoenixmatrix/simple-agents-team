@@ -1,3 +1,3 @@
 import { $ } from "bun";
 
-await $`sat daemon`.quiet();
+await $`px daemon`.quiet();

@@ -1,6 +1,6 @@
 import { $ } from "bun";
 
-const name = process.env.SAT_AGENT_NAME;
+const name = process.env.PX_AGENT_NAME;
 if (name) {
-  await $`sat workers status ${name} busy`.quiet();
+  await $`px workers status ${name} busy`.quiet();
 }

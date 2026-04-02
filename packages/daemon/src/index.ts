@@ -1,7 +1,7 @@
 import { parseArgs } from "util";
 import { $ } from "bun";
 
-const SESSION_NAME = "sat-daemon";
+const SESSION_NAME = "px-daemon";
 
 async function run(args: string[]) {
   const { values } = parseArgs({
@@ -14,10 +14,10 @@ async function run(args: string[]) {
   });
 
   if (values.help) {
-    console.log(`sat daemon - Status dashboard
+    console.log(`px daemon - Status dashboard
 
 Usage:
-  sat daemon [options]
+  px daemon [options]
 
 Options:
   -h, --help    Show this help message
@@ -37,7 +37,7 @@ Options:
     // Step 1: Is daemon registered in workers?
     let daemonTarget: string | null = null;
     try {
-      const output = (await $`sat workers json`.quiet()).text().trim();
+      const output = (await $`px workers json`.quiet()).text().trim();
       const workers = JSON.parse(output) as { worker_name: string; tmux_target: string | null }[];
       const daemon = workers.find((w) => w.worker_name === "daemon");
       daemonTarget = daemon?.tmux_target ?? null;
@@ -91,7 +91,7 @@ Options:
     const tmuxTarget = (await $`tmux display-message -p -t ${SESSION_NAME} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
     // Register in workers
-    await $`sat workers add daemon ${tmuxTarget} daemon`.quiet();
+    await $`px workers add daemon ${tmuxTarget} daemon`.quiet();
 
     // Configure status bar
     await $`tmux set-option -t ${SESSION_NAME} status-left-length 25`.quiet();
@@ -100,7 +100,7 @@ Options:
     await $`tmux set-option -t ${SESSION_NAME} automatic-rename off`.quiet();
 
     // Launch the daemon app in the tmux session
-    await $`tmux send-keys -t ${tmuxTarget} 'sat daemon --app' Enter`.quiet();
+    await $`tmux send-keys -t ${tmuxTarget} 'px daemon --app' Enter`.quiet();
 
     console.log(`Daemon started in tmux session ${SESSION_NAME} (${tmuxTarget})`);
   }

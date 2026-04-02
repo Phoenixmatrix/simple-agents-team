@@ -1,0 +1,4 @@
+#!/bin/bash
+root="$(cd "$(dirname "$0")/.." && pwd)"
+export PX_CWD="${PX_CWD:-$(pwd)}"
+cd "$root" && exec bun packages/px/src/index.ts "$@"

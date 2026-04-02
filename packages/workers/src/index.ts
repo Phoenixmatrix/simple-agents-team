@@ -3,10 +3,10 @@ import { openDatabase, getWorkers, addWorker, updateWorkerStatus, clearWorkers }
 import type { WorkerType } from "db";
 import * as ui from "./ui";
 
-const HELP = `sat workers - Worker manager
+const HELP = `px workers - Worker manager
 
 Usage:
-  sat workers [action] [arguments]
+  px workers [action] [arguments]
 
 Commands:
   (none)                               List all workers
@@ -67,7 +67,7 @@ async function run(args: string[]) {
         const tmuxTarget = positionals[2];
         const type = positionals[3] as WorkerType;
         if (!name || !tmuxTarget || !type) {
-          ui.renderError("Usage: sat workers add <name> <tmux_target> <type>");
+          ui.renderError("Usage: px workers add <name> <tmux_target> <type>");
           process.exit(1);
         }
         if (!["coordinator", "daemon", "worker", "release"].includes(type)) {
@@ -83,7 +83,7 @@ async function run(args: string[]) {
         const name = positionals[1];
         const status = positionals.slice(2).join(" ");
         if (!name || !status) {
-          ui.renderError("Usage: sat workers status <name> <status>");
+          ui.renderError("Usage: px workers status <name> <status>");
           process.exit(1);
         }
         updateWorkerStatus(db, name, status);

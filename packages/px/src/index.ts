@@ -7,7 +7,7 @@ import { command as workers } from "workers";
 import { command as hooks } from "hooks";
 import { command as daemon } from "daemon";
 
-// Inline commands defined in the sat package
+// Inline commands defined in the px package
 import { command as spawnWorker } from "./spawn-worker";
 import { command as spawnRelease } from "./spawn-release";
 import { command as getAgentName } from "./get-agent-name";
@@ -28,10 +28,10 @@ const commandMap = new Map(commands.map((c) => [c.name, c]));
 
 function printHelp() {
   const lines = [
-    "sat - Simple Agents Team CLI",
+    "px - px CLI",
     "",
     "Usage:",
-    "  sat <command> [arguments]",
+    "  px <command> [arguments]",
     "",
     "Commands:",
   ];
@@ -44,7 +44,7 @@ function printHelp() {
   lines.push("Options:");
   lines.push("  -h, --help         Show this help message");
   lines.push("");
-  lines.push("Run 'sat <command> --help' for more information on a command.");
+  lines.push("Run 'px <command> --help' for more information on a command.");
   console.log(lines.join("\n"));
 }
 
@@ -59,10 +59,10 @@ if (!subcommand || subcommand === "-h" || subcommand === "--help") {
 if (subcommand === "start") {
   // Start the coordinator — special case, not a subcommand
   const settingsPath = getSettingsPath("coordinator");
-  const cwd = process.env.SAT_CWD || process.cwd();
+  const cwd = process.env.PX_CWD || process.cwd();
 
   // If not inside tmux, create or attach to a tmux session
-  const SESSION_NAME = "sat";
+  const SESSION_NAME = "px";
   if (!process.env.TMUX) {
     let hasSession = false;
     try {
@@ -78,7 +78,7 @@ if (subcommand === "start") {
       });
       process.exit(proc.exitCode);
     } else {
-      const proc = Bun.spawnSync(["tmux", "new-session", "-c", cwd, "-s", SESSION_NAME, "--", "sat", "start"], {
+      const proc = Bun.spawnSync(["tmux", "new-session", "-c", cwd, "-s", SESSION_NAME, "--", "px", "start"], {
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
@@ -89,8 +89,8 @@ if (subcommand === "start") {
 
   // Clear previous state and register coordinator worker
   const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
-  await $`sat workers clear`.quiet();
-  await $`sat workers add coordinator ${tmuxTarget} coordinator`.quiet();
+  await $`px workers clear`.quiet();
+  await $`px workers add coordinator ${tmuxTarget} coordinator`.quiet();
 
   // Configure tmux status bar for this session
   await $`tmux set-option status-left-length 25`.quiet();
@@ -98,7 +98,7 @@ if (subcommand === "start") {
   await $`tmux set-option status-right ''`.quiet();
 
   // Spawn the release agent
-  await $`sat spawn-release`.quiet();
+  await $`px spawn-release`.quiet();
 
   const initialPrompt = "Go through the initialization process";
 
@@ -107,7 +107,7 @@ if (subcommand === "start") {
     stdin: new TextEncoder().encode(initialPrompt),
     stdout: "inherit",
     stderr: "inherit",
-    env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1", SAT_AGENT_NAME: "coordinator" },
+    env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1", PX_AGENT_NAME: "coordinator" },
   });
   await proc.exited;
 } else {

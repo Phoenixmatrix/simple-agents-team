@@ -4,7 +4,7 @@ async function run(args: string[]) {
   const name = args[0];
 
   if (!name) {
-    console.error("Usage: sat personas <name>");
+    console.error("Usage: px personas <name>");
     process.exit(1);
   }
 

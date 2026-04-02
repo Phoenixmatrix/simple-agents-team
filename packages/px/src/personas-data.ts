@@ -11,7 +11,7 @@ import coordinatorSettings from "../../../personas/coordinator/settings.json";
 import workerSettings from "../../../personas/worker/settings.json";
 import releaseSettings from "../../../personas/release/settings.json";
 
-const PERSONAS_DIR = resolve(process.env.HOME ?? "~", ".sat", "personas");
+const PERSONAS_DIR = resolve(process.env.HOME ?? "~", ".px", "personas");
 
 const personas: Record<string, { persona: string; settings: unknown }> = {
   coordinator: { persona: coordinatorPersona, settings: coordinatorSettings },
@@ -21,7 +21,7 @@ const personas: Record<string, { persona: string; settings: unknown }> = {
 
 let _synced = false;
 
-/** Ensures persona files exist at ~/.sat/personas/ — writes them on first call. */
+/** Ensures persona files exist at ~/.px/personas/ — writes them on first call. */
 export function ensurePersonas() {
   if (_synced) return;
   _synced = true;
@@ -34,7 +34,7 @@ export function ensurePersonas() {
   }
 }
 
-/** Returns the path to a persona directory under ~/.sat/personas/. */
+/** Returns the path to a persona directory under ~/.px/personas/. */
 export function getPersonaDir(name: string): string {
   ensurePersonas();
   return resolve(PERSONAS_DIR, name);

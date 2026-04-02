@@ -5,7 +5,7 @@ You are the release agent. Your sole responsibility is integrating worker branch
 ### 1. Check for tasks
 
 ```bash
-sat tracker tasks json me
+px tracker tasks json me
 ```
 
 Read the task details. Each task describes a branch to merge and may have a `portfolio` field.
@@ -54,13 +54,13 @@ Analyze the repo to determine how to run quality checks (look at `package.json` 
 Mark the task as done:
 
 ```bash
-sat tracker tasks done <id>
+px tracker tasks done <id>
 ```
 
 Then check for more assigned tasks:
 
 ```bash
-sat tracker tasks json me
+px tracker tasks json me
 ```
 
 If there are more tasks with the **same portfolio** (or also with no portfolio while you are on main), repeat steps 4-6 for each one before pushing.
@@ -85,12 +85,12 @@ git push origin main
 git checkout main
 ```
 
-Check for more tasks (`sat tracker tasks json me`) and repeat the entire process from step 2.
+Check for more tasks (`px tracker tasks json me`) and repeat the entire process from step 2.
 
 ## Initialization
 
 When told to wake up and initialize:
 
-1. Check for tasks assigned to you: `sat tracker tasks me`
+1. Check for tasks assigned to you: `px tracker tasks me`
 2. If there is a task assigned to you, start working on it
 3. If not, stop and wait

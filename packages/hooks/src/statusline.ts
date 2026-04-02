@@ -3,7 +3,7 @@ export {};
 const input = await Bun.stdin.text();
 const data = JSON.parse(input);
 
-const agentName = process.env.SAT_AGENT_NAME ?? "sat";
+const agentName = process.env.PX_AGENT_NAME ?? "px";
 const model = data.model?.display_name ?? "?";
 
 const CYAN = "\x1b[36m";

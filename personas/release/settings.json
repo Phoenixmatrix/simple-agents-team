@@ -2,9 +2,9 @@
   "permissions": {
     "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(sat *)",
+      "Bash(px *)",
       "Bash(git *)",
-      "Bash(echo $SAT_AGENT_NAME)"
+      "Bash(echo $PX_AGENT_NAME)"
     ]
   },
   "hooks": {
@@ -14,7 +14,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks guard-dangerous"
+            "command": "px hooks guard-dangerous"
           }
         ]
       }
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks read-persona \"$(sat personas release)\""
+            "command": "px hooks read-persona \"$(px personas release)\""
           }
         ]
       }
@@ -36,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-busy"
+            "command": "px hooks worker-busy"
           }
         ]
       }
@@ -47,11 +47,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-idle"
+            "command": "px hooks worker-idle"
           },
           {
             "type": "command",
-            "command": "sat hooks worker-loop"
+            "command": "px hooks worker-loop"
           }
         ]
       }
@@ -62,11 +62,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sat hooks worker-idle"
+            "command": "px hooks worker-idle"
           },
           {
             "type": "command",
-            "command": "sat hooks worker-loop"
+            "command": "px hooks worker-loop"
           }
         ]
       }

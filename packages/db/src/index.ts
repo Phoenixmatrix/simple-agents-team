@@ -14,7 +14,7 @@ import * as m006 from "./migrations/006-task-portfolio";
 
 const migrations: Migration[] = [m001, m002, m003, m004, m005, m006];
 
-const DB_FILENAME = "sat.db";
+const DB_FILENAME = "px.db";
 
 function getGitRepoRoot(): string {
   // Use --git-common-dir so worktrees resolve to the main repo's .git

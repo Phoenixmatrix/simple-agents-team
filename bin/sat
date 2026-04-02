@@ -1,4 +1,0 @@
-#!/bin/bash
-root="$(cd "$(dirname "$0")/.." && pwd)"
-export SAT_CWD="${SAT_CWD:-$(pwd)}"
-cd "$root" && exec bun packages/sat/src/index.ts "$@"

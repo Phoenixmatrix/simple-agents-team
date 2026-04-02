@@ -15,7 +15,7 @@
     { "path": "packages/daemon" },
     { "path": "packages/db" },
     { "path": "packages/hooks" },
-    { "path": "packages/sat" },
+    { "path": "packages/px" },
     { "path": "packages/tracker" },
     { "path": "packages/tmux-manager" },
     { "path": "packages/workers" }
