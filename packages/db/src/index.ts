@@ -10,8 +10,9 @@ import * as m002 from "./migrations/002-task-status";
 import * as m003 from "./migrations/003-worker-tmux";
 import * as m004 from "./migrations/004-worker-type";
 import * as m005 from "./migrations/005-task-blocked-by";
+import * as m006 from "./migrations/006-task-portfolio";
 
-const migrations: Migration[] = [m001, m002, m003, m004, m005];
+const migrations: Migration[] = [m001, m002, m003, m004, m005, m006];
 
 const DB_FILENAME = "sat.db";
 
@@ -71,6 +72,7 @@ export interface Task {
   status: string;
   assigned_to: string | null;
   blocked_by: string | null;
+  portfolio: string | null;
 }
 
 export type WorkerType = "coordinator" | "daemon" | "worker" | "release";
@@ -89,27 +91,27 @@ export function getTasks(db: Database, statusFilter?: string | string[]): Task[]
   if (statusFilter) {
     const statuses = Array.isArray(statusFilter) ? statusFilter : [statusFilter];
     const placeholders = statuses.map(() => "?").join(", ");
-    return db.query(`SELECT id, task_id, description, status, assigned_to, blocked_by FROM tasks WHERE status IN (${placeholders})`).all(...statuses) as Task[];
+    return db.query(`SELECT id, task_id, description, status, assigned_to, blocked_by, portfolio FROM tasks WHERE status IN (${placeholders})`).all(...statuses) as Task[];
   }
-  return db.query("SELECT id, task_id, description, status, assigned_to, blocked_by FROM tasks").all() as Task[];
+  return db.query("SELECT id, task_id, description, status, assigned_to, blocked_by, portfolio FROM tasks").all() as Task[];
 }
 
 export function getTasksForWorker(db: Database, workerName: string): Task[] {
-  return db.query("SELECT id, task_id, description, status, assigned_to, blocked_by FROM tasks WHERE assigned_to = ? AND status IN ('assigned', 'in-progress')").all(workerName) as Task[];
+  return db.query("SELECT id, task_id, description, status, assigned_to, blocked_by, portfolio FROM tasks WHERE assigned_to = ? AND status IN ('assigned', 'in-progress')").all(workerName) as Task[];
 }
 
 export function getTask(db: Database, taskId: string): Task | null {
-  return (db.query("SELECT id, task_id, description, status, assigned_to, blocked_by FROM tasks WHERE task_id = ?").get(taskId) as Task) ?? null;
+  return (db.query("SELECT id, task_id, description, status, assigned_to, blocked_by, portfolio FROM tasks WHERE task_id = ?").get(taskId) as Task) ?? null;
 }
 
-export function addTask(db: Database, taskId: string, description: string, blockedBy?: string): boolean {
+export function addTask(db: Database, taskId: string, description: string, blockedBy?: string, portfolio?: string): boolean {
   const existing = getTask(db, taskId);
   if (existing) return false;
-  db.run("INSERT INTO tasks (task_id, description, status, blocked_by) VALUES (?, ?, 'ready', ?)", [taskId, description, blockedBy ?? null]);
+  db.run("INSERT INTO tasks (task_id, description, status, blocked_by, portfolio) VALUES (?, ?, 'ready', ?, ?)", [taskId, description, blockedBy ?? null, portfolio ?? null]);
   return true;
 }
 
-export function createTask(db: Database, prefix: string, description: string, blockedBy?: string): string {
+export function createTask(db: Database, prefix: string, description: string, blockedBy?: string, portfolio?: string): string {
   const rows = db.query("SELECT task_id FROM tasks WHERE task_id LIKE ? ORDER BY id DESC LIMIT 1").all(`${prefix}-%`) as { task_id: string }[];
   let next = 1;
   if (rows.length > 0) {
@@ -118,7 +120,7 @@ export function createTask(db: Database, prefix: string, description: string, bl
     if (!isNaN(num)) next = num + 1;
   }
   const taskId = `${prefix}-${next}`;
-  db.run("INSERT INTO tasks (task_id, description, status, blocked_by) VALUES (?, ?, 'ready', ?)", [taskId, description, blockedBy ?? null]);
+  db.run("INSERT INTO tasks (task_id, description, status, blocked_by, portfolio) VALUES (?, ?, 'ready', ?, ?)", [taskId, description, blockedBy ?? null, portfolio ?? null]);
   return taskId;
 }
 

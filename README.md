@@ -105,10 +105,14 @@ sat tracker tasks json                     # Output active tasks as JSON
 sat tracker tasks json me                  # Output my assigned tasks as JSON
 sat tracker tasks create T "description"   # Create task, prints ID (e.g. T-1)
 sat tracker tasks create T "step 2" --blocked-by T-1  # Create with dependency
+sat tracker tasks create T "in portfolio" --portfolio feature-branch  # Create with portfolio
 sat tracker tasks assign T-1 worker-name   # Assign to a worker
 sat tracker tasks start T-1                # Mark in-progress
 sat tracker tasks done T-1                 # Mark complete
 sat tracker status                         # Show all tasks and workers
+sat tracker portfolio open feature-branch  # Set session portfolio
+sat tracker portfolio                      # Show current portfolio
+sat tracker portfolio close                # Clear session portfolio
 ```
 
 ### workers
@@ -161,25 +165,49 @@ Each worker runs in its own tmux session. Workers follow a loop:
 1. Check for assigned tasks (`sat tracker tasks me`)
 2. Start the task (`sat tracker tasks start T-1`)
 3. Do the work — edit code, run tests, commit
-4. Push the branch to remote
-5. Create a release task (`sat tracker tasks create R "Merge branch feature-x"`)
-6. Assign it to `release`
-7. Mark their task done (`sat tracker tasks done T-1`)
-8. Loop back to check for more tasks
+4. Run quality gates (typecheck, lint) and fix any issues
+5. Push the branch to remote
+6. Create a release task, passing through the portfolio if the task has one (`sat tracker tasks create R "Merge branch feature-x" --portfolio <name>`)
+7. Assign it to `release`
+8. Mark their task done (`sat tracker tasks done T-1`)
+9. Loop back to check for more tasks
 
-Workers never merge to main themselves. They hand off to the release agent.
+Workers never merge branches themselves. They hand off to the release agent.
 
 ### The release agent
 
-The release agent handles merging branches to main:
+The release agent handles merging worker branches. Its behavior depends on whether the task has a portfolio.
 
-1. Picks up assigned R-tasks
-2. Checks out main, fetches latest
-3. Merges the feature branch
-4. Runs quality checks (typecheck, lint)
-5. If checks pass, pushes to main
-6. If checks fail, fixes issues before pushing
-7. Marks the task done
+**With a portfolio:** The release agent creates or updates a branch named after the portfolio, merges the worker's feature branch into it, runs quality checks, and pushes the portfolio branch. This lets you collect multiple related changes on one branch before merging to main.
+
+**Without a portfolio:** The release agent merges the feature branch directly into main, runs quality checks, and pushes.
+
+### Portfolios
+
+A portfolio groups related tasks onto a named branch. The portfolio name must be a valid git branch name.
+
+**Opening a portfolio** sets it for the current agent session. All tasks created in that session automatically get the portfolio:
+
+```sh
+sat tracker portfolio open feature/auth
+sat tracker tasks create T "login page"       # gets portfolio "feature/auth"
+sat tracker tasks create T "auth endpoints"    # gets portfolio "feature/auth"
+```
+
+**Closing a portfolio** clears the session, so subsequent tasks go to main:
+
+```sh
+sat tracker portfolio close
+sat tracker tasks create T "quick fix"         # no portfolio, merges to main
+```
+
+You can also set a portfolio per-task with the `--portfolio` flag, which overrides the session portfolio:
+
+```sh
+sat tracker tasks create T "isolated change" --portfolio hotfix/urgent
+```
+
+Portfolios are scoped per agent — the coordinator opening a portfolio doesn't affect workers. Workers read the portfolio from their assigned task's JSON and pass it through when creating release tasks.
 
 ### The daemon
 

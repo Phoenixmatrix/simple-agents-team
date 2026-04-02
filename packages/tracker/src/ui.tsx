@@ -16,6 +16,7 @@ function TaskList({ tasks }: { tasks: Task[] }) {
             <Text>{t.description}</Text>
             {t.assigned_to && <Text color="magenta">({t.assigned_to})</Text>}
             {t.blocked_by && <Text color="red">[blocked by {t.blocked_by}]</Text>}
+            {t.portfolio && <Text color="green">[{t.portfolio}]</Text>}
           </Box>
         ))
       )}

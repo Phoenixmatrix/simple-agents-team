@@ -1,4 +1,7 @@
 import { parseArgs } from "util";
+import { resolve } from "path";
+import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync } from "fs";
+import { execSync } from "child_process";
 import {
   openDatabase,
   getTask,
@@ -15,6 +18,49 @@ import {
   unassignTask,
 } from "./db";
 import * as ui from "./ui";
+
+// --- Session portfolio helpers ---
+
+const SAT_DIR = resolve(process.env.HOME ?? "~", ".sat");
+
+function getPortfolioFilePath(): string {
+  const agentName = process.env.SAT_AGENT_NAME ?? "default";
+  return resolve(SAT_DIR, `portfolio-${agentName}`);
+}
+
+function getSessionPortfolio(): string | null {
+  const filePath = getPortfolioFilePath();
+  if (!existsSync(filePath)) return null;
+  return readFileSync(filePath, "utf-8").trim() || null;
+}
+
+function setSessionPortfolio(name: string): void {
+  mkdirSync(SAT_DIR, { recursive: true });
+  writeFileSync(getPortfolioFilePath(), name);
+}
+
+function clearSessionPortfolio(): void {
+  const filePath = getPortfolioFilePath();
+  if (existsSync(filePath)) unlinkSync(filePath);
+}
+
+function validatePortfolioName(name: string): boolean {
+  try {
+    execSync(`git check-ref-format --branch ${JSON.stringify(name)}`, {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolvePortfolio(explicit?: string): string | undefined {
+  if (explicit !== undefined) return explicit;
+  return getSessionPortfolio() ?? undefined;
+}
+
+// --- CLI ---
 
 const HELP = `sat tracker - Task and worker tracker
 
@@ -37,11 +83,16 @@ Commands:
   tasks delete <id>              Delete a task by id
   tasks clear                    Delete all tasks
 
+  portfolio                      Show current session portfolio
+  portfolio open <name>          Set session portfolio (for task creation)
+  portfolio close                Clear session portfolio
+
   status                         Show all tasks and workers
 
 Options:
   -h, --help                     Show this help message
-  --blocked-by <id>              Set a blocking task (for create/add)`;
+  --blocked-by <id>              Set a blocking task (for create/add)
+  --portfolio <name>             Set portfolio for a task (for create/add)`;
 
 async function run(args: string[]) {
   const { values, positionals } = parseArgs({
@@ -49,6 +100,7 @@ async function run(args: string[]) {
     options: {
       help: { type: "boolean", short: "h" },
       "blocked-by": { type: "string" },
+      portfolio: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -58,11 +110,42 @@ async function run(args: string[]) {
     return;
   }
 
+  const resource = positionals[0];
+  const action = positionals[1];
+
+  // Portfolio commands don't need the database
+  if (resource === "portfolio") {
+    if (action === "open") {
+      const name = positionals[2];
+      if (!name) {
+        ui.renderError("Usage: sat tracker portfolio open <name>");
+        process.exit(1);
+      }
+      if (!validatePortfolioName(name)) {
+        ui.renderError(`Invalid portfolio name: "${name}" (must be a valid git branch name)`);
+        process.exit(1);
+      }
+      setSessionPortfolio(name);
+      ui.renderSuccess(`Portfolio set to: ${name}`);
+    } else if (action === "close") {
+      clearSessionPortfolio();
+      ui.renderSuccess("Portfolio cleared");
+    } else if (action === "show" || !action) {
+      const current = getSessionPortfolio();
+      if (current) {
+        console.log(current);
+      } else {
+        console.log("No portfolio set for this session");
+      }
+    } else {
+      ui.renderError(`Unknown portfolio action: ${action}`);
+      process.exit(1);
+    }
+    return;
+  }
+
   const db = openDatabase();
   try {
-    const resource = positionals[0];
-    const action = positionals[1];
-
     switch (resource) {
       case "tasks": {
         if (!action) {
@@ -159,7 +242,12 @@ async function run(args: string[]) {
             ui.renderError("Usage: sat tracker tasks add <id> <description>");
             process.exit(1);
           }
-          if (addTask(db, taskId, desc, values["blocked-by"])) {
+          const portfolio = resolvePortfolio(values.portfolio);
+          if (portfolio && !validatePortfolioName(portfolio)) {
+            ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
+            process.exit(1);
+          }
+          if (addTask(db, taskId, desc, values["blocked-by"], portfolio)) {
             ui.renderSuccess(`Added task ${taskId}`);
           } else {
             ui.renderError(`Task ${taskId} already exists`);
@@ -172,7 +260,12 @@ async function run(args: string[]) {
             ui.renderError("Usage: sat tracker tasks create <prefix> <description>");
             process.exit(1);
           }
-          const taskId = createTask(db, prefix, desc, values["blocked-by"]);
+          const portfolio = resolvePortfolio(values.portfolio);
+          if (portfolio && !validatePortfolioName(portfolio)) {
+            ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
+            process.exit(1);
+          }
+          const taskId = createTask(db, prefix, desc, values["blocked-by"], portfolio);
           console.log(taskId);
         } else if (action === "delete") {
           const taskId = positionals[2];
