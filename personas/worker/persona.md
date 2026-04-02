@@ -55,16 +55,9 @@ git commit -m "description of changes"
 
 Analyze the repo to determine how to run quality checks (look at `package.json` scripts, CI config, etc.), then run typechecking and linting. Fix any issues before continuing.
 
-### 5. Push the branch
+### 5. Create a release task
 
-```bash
-branch=$(git branch --show-current)
-git push -u origin "$branch"
-```
-
-### 6. Create a release task
-
-Create a release task assigned to the `release` worker with the branch name. If your task has a portfolio, you **must** pass it through with `--portfolio`.
+Create a release task assigned to the `release` worker with the branch name. Do not push the branch — the release worker handles integration and pushing. If your task has a portfolio, you **must** pass it through with `--portfolio`.
 
 With a portfolio:
 
@@ -82,7 +75,7 @@ release_task=$(sat tracker tasks create R "Merge branch $branch")
 sat tracker tasks assign "$release_task" release
 ```
 
-### 7. Mark your task as done
+### 6. Mark your task as done
 
 ```bash
 sat tracker tasks done <your-task-id>

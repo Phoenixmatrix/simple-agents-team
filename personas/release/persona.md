@@ -37,10 +37,10 @@ If the task has **no portfolio**, stay on main.
 
 ### 4. Merge the worker's branch
 
-Merge the branch described in the task into the current branch:
+Merge the branch described in the task into the current branch. Worker branches are local (not pushed to origin), so merge them directly:
 
 ```bash
-git merge origin/<branch-from-task>
+git merge <branch-from-task>
 ```
 
 If there are conflicts, resolve them carefully.
