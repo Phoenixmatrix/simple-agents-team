@@ -4,43 +4,35 @@ Before using the tracker for the first time, ALWAYS Learn how to use the task tr
 IMPORTANT: all task management should be done using `sat tracker`
 When you are told to create a task, create it using the tracker, but do not work on it unless explicitely told to.
 
-## Spawning Workers
+## Delegating Work
 
-You can spawn worker agents to delegate tasks. Each worker runs in its own tmux session with its own Claude Code instance.
+When you have tasks to assign, follow this process:
 
-### Getting an agent name
+### Step 1: Check existing workers
 
-Before spawning a worker, generate a name for it:
-
-```bash
-sat get-agent-name
-```
-
-This outputs a unique name. **Do NOT make up worker names yourself** — always use `sat get-agent-name` to obtain one.
-
-### Spawning a worker
-
-Usage: `sat spawn-worker <name> [prompt]`
-
-- `<name>` is the name obtained from `sat get-agent-name`
-- `[prompt]` is an optional initial instruction sent to the worker via stdin
-
-### Delegating Work
-
-When you need to delegate work, **always start by checking the current worker pool**:
+**Always start by checking the current worker pool:**
 
 ```bash
 sat workers list
 ```
 
-This lists all workers (excluding coordinator and daemon) with their current status (e.g. `idle`, `busy`).
+This lists all workers with their current status (`idle` or `busy`).
 
-Based on the output, decide the best strategy:
+### Step 2: Decide how to assign
 
-1. **Assign to an existing worker** — if a worker is already running (idle or busy), just assign the task. Workers automatically pull new tasks when they finish their current work. **Do NOT re-spawn or wake up existing workers** — `sat spawn-worker` is only for creating new workers.
-2. **Spawn a new worker** — if all workers are busy with unrelated work and the new task can run in parallel, spawn a new worker to maximize throughput.
+Look at the worker list, the tasks to assign, and any `blocked_by` dependencies between them. Then decide:
 
-#### Creating tasks
+- **Assign to an idle worker** — if a worker is idle, assign the task directly. Workers automatically pick up new tasks. This is always preferred over spawning a new worker.
+- **Assign to a busy worker** — if a worker is busy but will finish soon, or if the new task is blocked by the worker's current task, assign it to the same worker. The worker will pick it up when done.
+- **Spawn a new worker** — only if all existing workers are busy with unrelated work AND the new task can run in parallel. Do not spawn workers unnecessarily.
+
+**Key rules:**
+- Tasks that depend on each other (`blocked_by`) should go to the same worker when possible — the worker will complete them in sequence.
+- Independent tasks can go to different workers for parallelism.
+- Fewer workers doing sequential work is better than many workers sitting idle waiting on blockers.
+- **Never re-spawn or wake up existing workers** — `sat spawn-worker` is only for creating new workers.
+
+### Step 3: Create tasks
 
 **Always use `sat tracker tasks create` to create tasks** — this auto-generates a unique task ID from a prefix and returns it. Do NOT use `tasks add` with a manually chosen ID.
 
@@ -48,27 +40,21 @@ Based on the output, decide the best strategy:
 task_id=$(sat tracker tasks create T "Fix the login validation bug in src/auth.ts")
 ```
 
-This prints the generated ID (e.g. `T-1`, `T-2`, etc.) which you can then use for assignment.
+### Step 4: Assign to existing worker or spawn a new one
 
-#### Dispatching to an existing worker
-
-Just assign the task — the worker will pick it up automatically:
+**Assigning to an existing worker** — just assign the task, the worker picks it up automatically:
 
 ```bash
-task_id=$(sat tracker tasks create T "Fix the login validation bug in src/auth.ts")
 sat tracker tasks assign "$task_id" existing-worker-name
 ```
 
-#### Spawning a new worker
+**Spawning a new worker** — only when needed:
 
 ```bash
 name=$(sat get-agent-name)
-task_id=$(sat tracker tasks create T "Fix the login validation bug in src/auth.ts")
 sat tracker tasks assign "$task_id" "$name"
 sat spawn-worker "$name" Wake up and initialize.
 ```
-
-If you just need to spawn a worker without a task assignment, skip the tracker steps.
 
 ## Initialization Process
 
