@@ -1,5 +1,7 @@
 import { Database } from "bun:sqlite";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import type { Migration } from "./migrate";
 import { migrate } from "./migrate";
 
@@ -11,14 +13,49 @@ import * as m005 from "./migrations/005-task-blocked-by";
 
 const migrations: Migration[] = [m001, m002, m003, m004, m005];
 
+const DB_FILENAME = "sat.db";
+
+function getGitRepoRoot(): string {
+  // Use --git-common-dir so worktrees resolve to the main repo's .git
+  const gitCommonDir = execSync("git rev-parse --git-common-dir", {
+    encoding: "utf-8",
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
+  // --git-common-dir returns a path relative to cwd (or absolute).
+  // The repo root is the parent of the .git directory.
+  return dirname(resolve(gitCommonDir));
+}
+
+function ensureGitignored(repoRoot: string) {
+  const gitignorePath = resolve(repoRoot, ".gitignore");
+  if (existsSync(gitignorePath)) {
+    const content = readFileSync(gitignorePath, "utf-8");
+    const lines = content.split("\n");
+    if (lines.some((line) => line.trim() === DB_FILENAME || line.trim() === `/${DB_FILENAME}`)) {
+      return; // already ignored
+    }
+    // Also covered if *.db is already in gitignore
+    if (lines.some((line) => line.trim() === "*.db")) {
+      return;
+    }
+    writeFileSync(gitignorePath, content.trimEnd() + "\n" + DB_FILENAME + "\n");
+  } else {
+    writeFileSync(gitignorePath, DB_FILENAME + "\n");
+  }
+}
+
 export function getDbPath(): string {
-  // Walk up from any package to find the project root data/ dir
-  const rootDir = resolve(import.meta.dirname, "../../..");
-  return resolve(rootDir, "data/sat.db");
+  const repoRoot = getGitRepoRoot();
+  return resolve(repoRoot, DB_FILENAME);
 }
 
 export function openDatabase(path?: string): Database {
-  const db = new Database(path ?? getDbPath());
+  const dbPath = path ?? getDbPath();
+  if (!path) {
+    // Only auto-check gitignore when using the default repo-scoped path
+    ensureGitignored(dirname(dbPath));
+  }
+  const db = new Database(dbPath);
   db.run("PRAGMA journal_mode = WAL");
   db.run("PRAGMA busy_timeout = 5000");
   migrate(db, migrations);
