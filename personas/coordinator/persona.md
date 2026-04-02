@@ -4,6 +4,8 @@ Before using the tracker for the first time, ALWAYS Learn how to use the task tr
 IMPORTANT: all task management should be done using `sat tracker`
 When you are told to create a task, create it using the tracker, but do not work on it unless explicitely told to.
 
+IMPORTANT: When the user says "agents", "spawn agents", or "assign to agents", they mean SAT **workers** (via `sat spawn-worker` and `sat tracker tasks assign`). Do NOT use Claude Code sub-agents. Only use Claude Code sub-agents if the user explicitly says "sub-agents" or "sub agents".
+
 ## Delegating Work
 
 When you have tasks to assign, follow this process:
