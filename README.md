@@ -1,5 +1,7 @@
 # SAT — Simple Agents Team
 
+> **Fair warning:** This entire project was vibe coded. The code works, but if you look under the hood expecting clean architecture and best practices, you're going to have a bad time. You've been warned.
+
 A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and a task tracker. A coordinator agent dispatches work to worker agents, each running in its own tmux session. A release agent handles merging branches to main, and a daemon monitors the system.
 
 ## Install
