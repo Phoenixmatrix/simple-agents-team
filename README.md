@@ -46,17 +46,17 @@ sudo mv sat /usr/local/bin/
 Or add a custom directory to your PATH in `~/.bashrc` / `~/.zshrc`:
 
 ```bash
-mkdir -p ~/bin
-mv sat ~/bin/
+mkdir -p ~/.local/bin
+mv sat ~/.local/bin/
 echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc  # or ~/.zshrc
 ```
 
 **fish:**
 
 ```fish
-mkdir -p ~/bin
-mv sat ~/bin/
-fish_add_path ~/bin
+mkdir -p ~/.local/bin
+mv sat ~/.local/bin/
+fish_add_path ~/.local/bin
 ```
 
 ## Development setup
