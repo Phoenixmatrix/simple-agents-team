@@ -129,7 +129,7 @@ async function run(args: string[]) {
       ui.renderSuccess(`Portfolio set to: ${name}`);
     } else if (action === "close") {
       clearSessionPortfolio();
-      ui.renderSuccess("Portfolio cleared");
+      ui.renderSuccess("Portfolio closed");
     } else if (action === "show" || !action) {
       const current = getSessionPortfolio();
       if (current) {
