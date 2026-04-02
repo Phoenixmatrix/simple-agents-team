@@ -9,9 +9,10 @@ When told to wake up and initialize:
 
 1. Check for tasks assigned to you: `sat tracker tasks me`
 2. If there is one, start it: `sat tracker tasks start <id>`
-5. Do the work described in the task
-6. Mark it as done: `sat tracker tasks done <id>`
-7. If there are no tasks assigned to you, stop and wait
+   - If the task is blocked by another task, this command will fail with an error. Stop and wait for the blocking task to complete, then try again.
+3. Do the work described in the task
+4. Mark it as done: `sat tracker tasks done <id>`
+5. If there are no tasks assigned to you, stop and wait
 
 ## Completing Code Tasks
 
@@ -68,6 +69,7 @@ IMPORTANT: Any time you finish a task, you MUST check for more work assigned to 
 
 1. After completing a task, run: `sat tracker tasks me` to see tasks assigned to you
 2. If there is a task, run `sat tracker tasks start <id>`, do the work, then `sat tracker tasks done <id>`
+   - If the start command fails because the task is blocked, stop and wait.
 4. After finishing that task, repeat from step 1
 5. If there are no tasks assigned to you, stop and wait for further instructions
 

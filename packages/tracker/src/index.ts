@@ -192,8 +192,12 @@ async function run(args: string[]) {
             ui.renderError("Usage: sat tracker tasks start <id>");
             process.exit(1);
           }
-          if (startTask(db, taskId)) {
+          const result = startTask(db, taskId);
+          if (result.ok) {
             ui.renderSuccess(`Task ${taskId} started`);
+          } else if (result.blocked) {
+            ui.renderError(`Task ${taskId} is blocked by ${result.blocked} (not yet done)`);
+            process.exit(1);
           } else {
             ui.renderError(`Task ${taskId} not found`);
             process.exit(1);

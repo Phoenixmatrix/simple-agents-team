@@ -134,9 +134,17 @@ export function assignTask(db: Database, taskId: string, workerName: string): bo
   return result.changes > 0;
 }
 
-export function startTask(db: Database, taskId: string): boolean {
+export function startTask(db: Database, taskId: string): { ok: boolean; blocked?: string } {
+  const task = getTask(db, taskId);
+  if (!task) return { ok: false };
+  if (task.blocked_by) {
+    const blocker = getTask(db, task.blocked_by);
+    if (!blocker || blocker.status !== "done") {
+      return { ok: false, blocked: task.blocked_by };
+    }
+  }
   const result = db.run("UPDATE tasks SET status = 'in-progress' WHERE task_id = ?", [taskId]);
-  return result.changes > 0;
+  return { ok: result.changes > 0 };
 }
 
 export function unassignTask(db: Database, taskId: string): boolean {
