@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: bun-linux-x64
+            artifact: sat-linux-x64
+          - os: ubuntu-latest
+            target: bun-linux-arm64
+            artifact: sat-linux-arm64
+          - os: macos-latest
+            target: bun-darwin-arm64
+            artifact: sat-darwin-arm64
+          - os: macos-13
+            target: bun-darwin-x64
+            artifact: sat-darwin-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - run: bun install --frozen-lockfile
+
+      - name: Build standalone binary
+        run: |
+          bun build packages/sat/src/index.ts \
+            --compile \
+            --target ${{ matrix.target }} \
+            --outfile ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Generate version tag
+        id: version
+        run: |
+          TAG="v0.1.0-$(git rev-parse --short HEAD)"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x artifacts/sat-*
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --title "SAT ${{ steps.version.outputs.tag }}" \
+            --generate-notes \
+            artifacts/sat-*

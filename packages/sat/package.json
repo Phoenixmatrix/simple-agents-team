@@ -8,6 +8,10 @@
     "start": "exec bun src/index.ts"
   },
   "dependencies": {
+    "tracker": "workspace:*",
+    "workers": "workspace:*",
+    "hooks": "workspace:*",
+    "daemon": "workspace:*",
     "unique-names-generator": "^4.7.1"
   }
 }
