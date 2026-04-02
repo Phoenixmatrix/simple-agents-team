@@ -124,18 +124,18 @@ This creates a tmux session called `sat`, registers the coordinator, spawns the 
 
 ### Instructing the coordinator
 
-The coordinator is your interface. Tell it what you want done in natural language:
+The coordinator is your interface. Tell it what you want done — but be explicit about how to break work into tasks, which tasks to assign to workers, and what can be parallelized. Think of it like delegating to a team lead who needs clear direction on how to split the work.
 
-> "Add a login page with email and password fields"
+> "We need to add authentication. Create three tasks: one for the login page UI, one for the auth API endpoints, and one for the session middleware. Spawn two workers — have one handle the login page and the other handle the API endpoints and session middleware in sequence."
 
 The coordinator will:
 
-1. Generate a unique worker name with `sat get-agent-name`
-2. Spawn a worker with `sat spawn-worker <name> "implement login page"`
-3. Create a task with `sat tracker tasks create T "Add login page"`
-4. Assign it to the worker
+1. Create tasks with `sat tracker tasks create T "description"`
+2. Generate unique worker names with `sat get-agent-name`
+3. Spawn workers with `sat spawn-worker <name> "initial prompt"`
+4. Assign tasks to workers with `sat tracker tasks assign T-1 <name>`
 
-You can ask it to spawn multiple workers for parallel tasks. The coordinator manages the task board and worker pool — you interact with it like a team lead.
+If you just say "add auth" without specifying how to split the work, the coordinator may handle it all in a single task or make its own choices about parallelization. Being explicit about task breakdown and worker assignment gives you better results.
 
 ### How workers operate
 
