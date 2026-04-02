@@ -6,16 +6,35 @@ A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and
 
 ## Install
 
-Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/simple-agents-team/releases) and place it in your PATH.
+Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/simple-agents-team/releases). Since this is a private repo, you need a GitHub token with `repo` scope (a classic PAT, or a fine-grained token with Contents read access).
+
+Set your token:
 
 ```bash
-# Linux (x64)
-curl -fsSL https://github.com/Phoenixmatrix/simple-agents-team/releases/latest/download/sat-linux-x64 -o sat
-chmod +x sat
+export GH_TOKEN="ghp_..."
+```
 
-# macOS (Apple Silicon)
-curl -fsSL https://github.com/Phoenixmatrix/simple-agents-team/releases/latest/download/sat-darwin-arm64 -o sat
-chmod +x sat
+**Linux (x64):**
+
+```bash
+gh release download --repo Phoenixmatrix/simple-agents-team --pattern 'sat-linux-x64' && chmod +x sat-linux-x64 && mv sat-linux-x64 sat
+```
+
+**macOS (Apple Silicon):**
+
+```bash
+gh release download --repo Phoenixmatrix/simple-agents-team --pattern 'sat-darwin-arm64' && chmod +x sat-darwin-arm64 && mv sat-darwin-arm64 sat
+```
+
+**Linux (x64) without `gh` CLI:**
+
+```bash
+curl -fsSL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" \
+  "$(curl -fsSL -H "Authorization: token $GH_TOKEN" \
+    https://api.github.com/repos/Phoenixmatrix/simple-agents-team/releases/latest \
+    | grep -o '"url": "https://api.github.com/repos/.*/releases/assets/[0-9]*"' \
+    | grep sat-linux-x64 | head -1 | cut -d'"' -f4)" \
+  -o sat && chmod +x sat
 ```
 
 Move the binary somewhere in your PATH:
