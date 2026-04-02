@@ -15,6 +15,7 @@ function TaskList({ tasks }: { tasks: Task[] }) {
             <Text color={t.status === "done" ? "gray" : t.status === "in-progress" ? "yellow" : t.status === "assigned" ? "blue" : "white"}>{t.status}</Text>
             <Text>{t.description}</Text>
             {t.assigned_to && <Text color="magenta">({t.assigned_to})</Text>}
+            {t.blocked_by && <Text color="red">[blocked by {t.blocked_by}]</Text>}
           </Box>
         ))
       )}

@@ -26,6 +26,8 @@ Commands:
   tasks me                       List tasks assigned to me (reads SAT_AGENT_NAME)
   tasks ready                    List tasks in ready state only
   tasks show <id>                Show a single task by id
+  tasks json                     Output all active tasks as JSON
+  tasks json me                  Output my tasks as JSON
   tasks add <id> <description>   Add a task with explicit id (status: ready)
   tasks create <prefix> <desc>   Create a task with auto-generated id (returns id)
   tasks start <id>               Set a task to in-progress
@@ -38,7 +40,8 @@ Commands:
   status                         Show all tasks and workers
 
 Options:
-  -h, --help                     Show this help message`;
+  -h, --help                     Show this help message
+  --blocked-by <id>              Set a blocking task (for create/add)`;
 
 const { values, positionals } = parseArgs({
   args: Bun.argv.slice(2),
@@ -46,6 +49,9 @@ const { values, positionals } = parseArgs({
     help: {
       type: "boolean",
       short: "h",
+    },
+    "blocked-by": {
+      type: "string",
     },
   },
   allowPositionals: true,
@@ -72,6 +78,20 @@ switch (resource) {
         process.exit(1);
       }
       ui.renderTasks(getTasksForWorker(db, workerName));
+    } else if (action === "json") {
+      const sub = positionals[2];
+      let tasks;
+      if (sub === "me") {
+        const workerName = process.env.SAT_AGENT_NAME;
+        if (!workerName) {
+          console.error("SAT_AGENT_NAME environment variable is not set");
+          process.exit(1);
+        }
+        tasks = getTasksForWorker(db, workerName);
+      } else {
+        tasks = getTasks(db, ["ready", "assigned", "in-progress"]);
+      }
+      console.log(JSON.stringify(tasks, null, 2));
     } else if (action === "ready") {
       ui.renderTasks(getTasks(db, "ready"));
     } else if (action === "show") {
@@ -143,7 +163,7 @@ switch (resource) {
         ui.renderError("Usage: tracker tasks add <id> <description>");
         process.exit(1);
       }
-      if (addTask(db, taskId, desc)) {
+      if (addTask(db, taskId, desc, values["blocked-by"])) {
         ui.renderSuccess(`Added task ${taskId}`);
       } else {
         ui.renderError(`Task ${taskId} already exists`);
@@ -156,7 +176,7 @@ switch (resource) {
         ui.renderError("Usage: tracker tasks create <prefix> <description>");
         process.exit(1);
       }
-      const taskId = createTask(db, prefix, desc);
+      const taskId = createTask(db, prefix, desc, values["blocked-by"]);
       console.log(taskId);
     } else if (action === "delete") {
       const taskId = positionals[2];
