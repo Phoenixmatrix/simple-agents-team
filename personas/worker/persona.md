@@ -16,46 +16,71 @@ When told to wake up and initialize:
 
 ## Completing Code Tasks
 
-When you finish working on a code-related task, you must follow this process to hand off your changes for release. You are running in a git worktree with its own branch — stay on that branch throughout.
+When you finish working on a code-related task, you must follow this process to hand off your changes for release.
 
-1. **Commit your changes** to the current branch.
+### 1. Read your task details
+
+Before anything else, read your task to get the portfolio (if any):
+
+```bash
+sat tracker tasks json me
+```
+
+Look at the `portfolio` field in the JSON output. You will need it for the next steps.
+
+### 2. Create and switch to a working branch
+
+If your task has a portfolio, use the portfolio name as a prefix for your branch:
+
+```bash
+git checkout -b <portfolio-name>/<short-description>
+```
+
+If your task has no portfolio, choose any descriptive branch name:
+
+```bash
+git checkout -b <short-description>
+```
+
+### 3. Commit your changes
 
 ```bash
 git add <files>
 git commit -m "description of changes"
 ```
 
-2. **Run quality gates** before proceeding.
+### 4. Run quality gates
 
 Analyze the repo to determine how to run quality checks (look at `package.json` scripts, CI config, etc.), then run typechecking and linting. Fix any issues before continuing.
 
-3. **Push the branch** to the remote.
+### 5. Push the branch
 
 ```bash
 branch=$(git branch --show-current)
 git push -u origin "$branch"
 ```
 
-4. **Create a release task** assigned to the `release` worker with the branch name.
+### 6. Create a release task
 
-First, check your task's details to see if it has a portfolio:
+Create a release task assigned to the `release` worker with the branch name. If your task has a portfolio, you **must** pass it through with `--portfolio`.
 
-```bash
-sat tracker tasks json me
-```
-
-Then create the release task. If your task has a `portfolio` field, pass it through with `--portfolio`:
+With a portfolio:
 
 ```bash
 branch=$(git branch --show-current)
-# If your task has a portfolio:
 release_task=$(sat tracker tasks create R "Merge branch $branch" --portfolio <portfolio-name>)
-# If no portfolio:
+sat tracker tasks assign "$release_task" release
+```
+
+Without a portfolio:
+
+```bash
+branch=$(git branch --show-current)
 release_task=$(sat tracker tasks create R "Merge branch $branch")
 sat tracker tasks assign "$release_task" release
 ```
 
-5. **Mark your task as done.**
+### 7. Mark your task as done
 
 ```bash
 sat tracker tasks done <your-task-id>
