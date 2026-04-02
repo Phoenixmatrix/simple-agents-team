@@ -30,13 +30,13 @@ Look at the `portfolio` field in the JSON output. You will need it for the next 
 
 ### 2. Create and switch to a working branch
 
-If your task has a portfolio, use the portfolio name as a prefix followed by a short summary of the task:
+If your task has a portfolio, use the portfolio name as a prefix followed by a hyphen and a short summary of the task:
 
 ```bash
-git checkout -b <portfolio-name>/<short-task-summary>
+git checkout -b <portfolio-name>-<short-task-summary>
 ```
 
-For example, if the portfolio is `auth-feature` and the task is "add login form", use `auth-feature/add-login-form`.
+For example, if the portfolio is `auth-feature` and the task is "add login form", use `auth-feature-add-login-form`. Do NOT use `/` as a separator — it causes namespace collisions with the portfolio integration branch.
 
 If your task has no portfolio, choose any descriptive branch name:
 
