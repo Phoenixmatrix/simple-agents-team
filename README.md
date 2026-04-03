@@ -8,6 +8,13 @@ A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and
 
 **Website:** [getpx.dev](https://getpx.dev)
 
+## Prerequisites
+
+px requires the following to be installed:
+
+- [**tmux**](https://github.com/tmux/tmux/wiki/Installing) — terminal multiplexer used to run each agent in its own session
+- [**Claude Code**](https://docs.anthropic.com/en/docs/claude-code/overview) — Anthropic's CLI for Claude (`npm install -g @anthropic-ai/claude-code`)
+
 ## Install
 
 Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/px/releases).

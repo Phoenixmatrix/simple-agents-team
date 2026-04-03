@@ -237,7 +237,21 @@ export default function Home() {
             Up and running in seconds
           </h2>
           <p className="text-gray-400 text-center mb-12 max-w-lg mx-auto">
-            Download the binary, put it on your PATH, and start orchestrating.
+            px requires{" "}
+            <a
+              href="https://github.com/tmux/tmux/wiki/Installing"
+              className="text-gray-300 underline underline-offset-4 hover:text-white transition-colors"
+            >
+              tmux
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://docs.anthropic.com/en/docs/claude-code/overview"
+              className="text-gray-300 underline underline-offset-4 hover:text-white transition-colors"
+            >
+              Claude Code
+            </a>
+            . Download the binary, put it on your PATH, and start orchestrating.
           </p>
 
           <div className="space-y-6">
