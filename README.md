@@ -1,4 +1,8 @@
-# px
+<p align="center">
+  <img src="packages/website/public/px_logo.png" alt="px logo" width="128" />
+</p>
+
+<h1 align="center">px</h1>
 
 > Pronounced "Pix".
 

@@ -69,6 +69,11 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-gray-950/80 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <img
+              src="/px_logo.png"
+              alt="px logo"
+              className="h-8 w-8 rounded"
+            />
             <span className="text-xl font-bold tracking-tight">px</span>
             <span className="text-xs text-gray-500 font-mono mt-0.5">
               /pɪks/
@@ -106,6 +111,11 @@ export default function Home() {
       {/* Hero */}
       <section className="pt-40 pb-24 px-6">
         <div className="max-w-4xl mx-auto text-center">
+          <img
+            src="/px_logo.png"
+            alt="px logo"
+            className="w-24 h-24 rounded-xl mx-auto mb-8"
+          />
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs text-gray-400 mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Open source CLI tool
