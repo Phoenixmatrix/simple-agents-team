@@ -8,58 +8,40 @@ A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and
 
 ## Install
 
-Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/px/releases). Since this is a private repo, you need to be authenticated. The easiest way is with the `gh` CLI (which uses your existing `gh auth login` session).
+Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/px/releases).
 
 **Linux (x64):**
 
 ```bash
-gh release download --repo Phoenixmatrix/px --pattern 'px-linux-x64' && chmod +x px-linux-x64 && mv px-linux-x64 px
+curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-x64
+chmod +x px
+sudo mv px /usr/local/bin/
+```
+
+**Linux (arm64):**
+
+```bash
+curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-arm64
+chmod +x px
+sudo mv px /usr/local/bin/
 ```
 
 **macOS (Apple Silicon):**
 
 ```bash
-gh release download --repo Phoenixmatrix/px --pattern 'px-darwin-arm64' && chmod +x px-darwin-arm64 && mv px-darwin-arm64 px
-```
-
-**Without `gh` CLI**, set a GitHub token with `repo` scope and use curl:
-
-```bash
-export GH_TOKEN="ghp_..."
-```
-
-```bash
-curl -fsSL -H "Authorization: token $GH_TOKEN" -H "Accept: application/octet-stream" \
-  "$(curl -fsSL -H "Authorization: token $GH_TOKEN" \
-    https://api.github.com/repos/Phoenixmatrix/px/releases/latest \
-    | grep -o '"url": "https://api.github.com/repos/.*/releases/assets/[0-9]*"' \
-    | grep px-linux-x64 | head -1 | cut -d'"' -f4)" \
-  -o px && chmod +x px
-```
-
-Move the binary somewhere in your PATH:
-
-**bash / zsh:**
-
-```bash
+curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-darwin-arm64
+chmod +x px
 sudo mv px /usr/local/bin/
 ```
 
-Or add a custom directory to your PATH in `~/.bashrc` / `~/.zshrc`:
+Or install to a user-local directory instead:
 
 ```bash
 mkdir -p ~/.local/bin
 mv px ~/.local/bin/
-echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc  # or ~/.zshrc
 ```
 
-**fish:**
-
-```fish
-mkdir -p ~/.local/bin
-mv px ~/.local/bin/
-fish_add_path ~/.local/bin
-```
+Make sure `~/.local/bin` is on your PATH (`export PATH="$HOME/.local/bin:$PATH"` in your shell rc, or `fish_add_path ~/.local/bin` for fish).
 
 ## Development setup
 
