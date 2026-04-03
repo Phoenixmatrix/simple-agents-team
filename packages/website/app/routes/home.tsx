@@ -160,21 +160,24 @@ export default function Home() {
             lines={[
               { prompt: true, text: "px start" },
               { text: "" },
-              {
-                text: "🤖 coordinator — dispatches tasks to workers",
-              },
-              {
-                text: "🤖 worker-alice — working on T-1: add login page",
-              },
-              {
-                text: "🤖 worker-bob   — working on T-2: auth endpoints",
-              },
-              {
-                text: "🚀 release      — merging branch auth-login-page",
-              },
-              {
-                text: "📊 daemon       — monitoring 3 workers, 0 idle",
-              },
+              { prompt: true, text: "tmux list-sessions" },
+              { text: "px:          1 windows (attached)" },
+              { text: "px-daemon:   1 windows" },
+              { text: "px-release:  1 windows" },
+              { text: "" },
+              { prompt: true, text: "px tracker status" },
+              { text: "Tasks:" },
+              { text: "  T-1  [in-progress]  add login page        → alice" },
+              { text: "  T-2  [in-progress]  auth API endpoints    → bob" },
+              { text: "  T-3  [assigned]     session middleware     → bob" },
+              { text: "  R-1  [ready]        merge auth-login-page → release" },
+              { text: "" },
+              { text: "Workers:" },
+              { text: "  coordinator  [busy]   px:0.0" },
+              { text: "  alice        [busy]   px-alice:0.0" },
+              { text: "  bob          [busy]   px-bob:0.0" },
+              { text: "  release      [idle]   px-release:0.0" },
+              { text: "  daemon       [busy]   px-daemon:0.0" },
             ]}
           />
         </div>
