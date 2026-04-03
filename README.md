@@ -28,7 +28,7 @@ Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatr
 ```bash
 curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-x64
 chmod +x px
-sudo mv px /usr/local/bin/
+mkdir -p ~/.local/bin && mv px ~/.local/bin/
 ```
 
 **Linux (arm64):**
@@ -36,7 +36,7 @@ sudo mv px /usr/local/bin/
 ```bash
 curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-arm64
 chmod +x px
-sudo mv px /usr/local/bin/
+mkdir -p ~/.local/bin && mv px ~/.local/bin/
 ```
 
 **macOS (Apple Silicon):**
@@ -44,14 +44,7 @@ sudo mv px /usr/local/bin/
 ```bash
 curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-darwin-arm64
 chmod +x px
-sudo mv px /usr/local/bin/
-```
-
-Or install to a user-local directory instead:
-
-```bash
-mkdir -p ~/.local/bin
-mv px ~/.local/bin/
+mkdir -p ~/.local/bin && mv px ~/.local/bin/
 ```
 
 Make sure `~/.local/bin` is on your PATH (`export PATH="$HOME/.local/bin:$PATH"` in your shell rc, or `fish_add_path ~/.local/bin` for fish).

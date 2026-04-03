@@ -271,7 +271,7 @@ export default function Home() {
                     prompt: true,
                     text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-x64",
                   },
-                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
+                  { prompt: true, text: "chmod +x px && mkdir -p ~/.local/bin && mv px ~/.local/bin/" },
                 ]}
               />
             </div>
@@ -286,7 +286,7 @@ export default function Home() {
                     prompt: true,
                     text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-arm64",
                   },
-                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
+                  { prompt: true, text: "chmod +x px && mkdir -p ~/.local/bin && mv px ~/.local/bin/" },
                 ]}
               />
             </div>
@@ -301,7 +301,7 @@ export default function Home() {
                     prompt: true,
                     text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-darwin-arm64",
                   },
-                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
+                  { prompt: true, text: "chmod +x px && mkdir -p ~/.local/bin && mv px ~/.local/bin/" },
                 ]}
               />
             </div>
