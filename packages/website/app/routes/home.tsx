@@ -88,6 +88,12 @@ export default function Home() {
               Quickstart
             </a>
             <a
+              href="https://github.com/Phoenixmatrix/px#readme"
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Docs
+            </a>
+            <a
               href="https://github.com/Phoenixmatrix/px"
               className="text-gray-400 hover:text-white transition-colors"
             >
@@ -240,9 +246,24 @@ export default function Home() {
                 lines={[
                   {
                     prompt: true,
-                    text: "gh release download --repo Phoenixmatrix/px --pattern 'px-linux-x64'",
+                    text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-x64",
                   },
-                  { prompt: true, text: "chmod +x px-linux-x64 && sudo mv px-linux-x64 /usr/local/bin/px" },
+                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
+                ]}
+              />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-3">
+                Linux (arm64)
+              </h3>
+              <TerminalBlock
+                lines={[
+                  {
+                    prompt: true,
+                    text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-linux-arm64",
+                  },
+                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
                 ]}
               />
             </div>
@@ -255,9 +276,9 @@ export default function Home() {
                 lines={[
                   {
                     prompt: true,
-                    text: "gh release download --repo Phoenixmatrix/px --pattern 'px-darwin-arm64'",
+                    text: "curl -fsSL -o px https://github.com/Phoenixmatrix/px/releases/latest/download/px-darwin-arm64",
                   },
-                  { prompt: true, text: "chmod +x px-darwin-arm64 && sudo mv px-darwin-arm64 /usr/local/bin/px" },
+                  { prompt: true, text: "chmod +x px && sudo mv px /usr/local/bin/" },
                 ]}
               />
             </div>
@@ -274,6 +295,17 @@ export default function Home() {
               />
             </div>
           </div>
+
+          <p className="text-center mt-10 text-sm text-gray-500">
+            See the{" "}
+            <a
+              href="https://github.com/Phoenixmatrix/px#readme"
+              className="text-gray-300 underline underline-offset-4 hover:text-white transition-colors"
+            >
+              full documentation
+            </a>{" "}
+            for development setup, commands reference, and workflow details.
+          </p>
         </div>
       </section>
 
