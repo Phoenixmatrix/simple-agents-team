@@ -1,6 +1,7 @@
 {
   "name": "px",
   "private": true,
+  "license": "MIT",
   "workspaces": ["packages/*"],
   "scripts": {
     "typecheck": "tsgo --build",
