@@ -1,6 +1,4 @@
 import { parseArgs } from "util";
-import { resolve } from "path";
-import { readFileSync, writeFileSync, unlinkSync, existsSync, mkdirSync } from "fs";
 import { execSync } from "child_process";
 import {
   openDatabase,
@@ -16,33 +14,11 @@ import {
   assignTask,
   startTask,
   unassignTask,
+  getPortfolio,
+  setPortfolio,
+  clearPortfolio,
 } from "./db";
 import * as ui from "./ui";
-
-// --- Session portfolio helpers ---
-
-const PX_DIR = resolve(process.env.HOME ?? "~", ".px");
-
-function getPortfolioFilePath(): string {
-  const agentName = process.env.PX_AGENT_NAME ?? "default";
-  return resolve(PX_DIR, `portfolio-${agentName}`);
-}
-
-function getSessionPortfolio(): string | null {
-  const filePath = getPortfolioFilePath();
-  if (!existsSync(filePath)) return null;
-  return readFileSync(filePath, "utf-8").trim() || null;
-}
-
-function setSessionPortfolio(name: string): void {
-  mkdirSync(PX_DIR, { recursive: true });
-  writeFileSync(getPortfolioFilePath(), name);
-}
-
-function clearSessionPortfolio(): void {
-  const filePath = getPortfolioFilePath();
-  if (existsSync(filePath)) unlinkSync(filePath);
-}
 
 function validatePortfolioName(name: string): boolean {
   try {
@@ -55,9 +31,9 @@ function validatePortfolioName(name: string): boolean {
   }
 }
 
-function resolvePortfolio(explicit?: string): string | undefined {
+function resolvePortfolio(db: ReturnType<typeof openDatabase>, agentName: string, explicit?: string): string | undefined {
   if (explicit !== undefined) return explicit;
-  return getSessionPortfolio() ?? undefined;
+  return getPortfolio(db, agentName) ?? undefined;
 }
 
 // --- CLI ---
@@ -113,38 +89,42 @@ async function run(args: string[]) {
   const resource = positionals[0];
   const action = positionals[1];
 
-  // Portfolio commands don't need the database
+  const db = openDatabase();
+  const agentName = process.env.PX_AGENT_NAME ?? "default";
+
   if (resource === "portfolio") {
-    if (action === "open") {
-      const name = positionals[2];
-      if (!name) {
-        ui.renderError("Usage: px tracker portfolio open <name>");
-        process.exit(1);
-      }
-      if (!validatePortfolioName(name)) {
-        ui.renderError(`Invalid portfolio name: "${name}" (must be a valid git branch name)`);
-        process.exit(1);
-      }
-      setSessionPortfolio(name);
-      ui.renderSuccess(`Portfolio set to: ${name}`);
-    } else if (action === "close") {
-      clearSessionPortfolio();
-      ui.renderSuccess("Portfolio closed");
-    } else if (action === "show" || !action) {
-      const current = getSessionPortfolio();
-      if (current) {
-        console.log(current);
+    try {
+      if (action === "open") {
+        const name = positionals[2];
+        if (!name) {
+          ui.renderError("Usage: px tracker portfolio open <name>");
+          process.exit(1);
+        }
+        if (!validatePortfolioName(name)) {
+          ui.renderError(`Invalid portfolio name: "${name}" (must be a valid git branch name)`);
+          process.exit(1);
+        }
+        setPortfolio(db, agentName, name);
+        ui.renderSuccess(`Portfolio set to: ${name}`);
+      } else if (action === "close") {
+        clearPortfolio(db, agentName);
+        ui.renderSuccess("Portfolio closed");
+      } else if (action === "show" || !action) {
+        const current = getPortfolio(db, agentName);
+        if (current) {
+          console.log(current);
+        } else {
+          console.log("No portfolio set for this session");
+        }
       } else {
-        console.log("No portfolio set for this session");
+        ui.renderError(`Unknown portfolio action: ${action}`);
+        process.exit(1);
       }
-    } else {
-      ui.renderError(`Unknown portfolio action: ${action}`);
-      process.exit(1);
+    } finally {
+      db.close();
     }
     return;
   }
-
-  const db = openDatabase();
   try {
     switch (resource) {
       case "tasks": {
@@ -246,7 +226,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks add <id> <description>");
             process.exit(1);
           }
-          const portfolio = resolvePortfolio(values.portfolio);
+          const portfolio = resolvePortfolio(db, agentName, values.portfolio);
           if (portfolio && !validatePortfolioName(portfolio)) {
             ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
             process.exit(1);
@@ -264,7 +244,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks create <prefix> <description>");
             process.exit(1);
           }
-          const portfolio = resolvePortfolio(values.portfolio);
+          const portfolio = resolvePortfolio(db, agentName, values.portfolio);
           if (portfolio && !validatePortfolioName(portfolio)) {
             ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
             process.exit(1);

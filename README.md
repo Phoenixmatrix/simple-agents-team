@@ -131,7 +131,7 @@ px daemon               # Start in a tmux session (auto-managed)
 px start
 ```
 
-This creates a tmux session called `px`, registers the coordinator, spawns the release agent, and launches Claude Code with the coordinator persona. The daemon starts automatically.
+If you're already in a tmux pane, the coordinator runs right there. If not, px creates a new tmux session for it. Either way, the release agent and daemon are spawned as separate tmux sessions, and Claude Code starts with the coordinator persona.
 
 ### Instructing the coordinator
 
@@ -201,16 +201,22 @@ Portfolios are scoped per agent — the coordinator opening a portfolio doesn't 
 
 ### The daemon
 
-The daemon runs in a tmux session (`px-daemon`) and polls the database every 2 seconds. It displays all workers and their status. If a worker has been idle for more than 20 seconds, the daemon sends a nudge to wake it up and check for tasks.
+The daemon polls the database every 2 seconds. It displays all workers and their status. If a worker has been idle for more than 20 seconds, the daemon sends a nudge to wake it up and check for tasks.
+
+### Multi-repo support
+
+You can run `px start` in multiple repos simultaneously. Each repo gets a short prefix derived from its name (e.g., `px` for a repo named "px", `mca` for "my-cool-app", `fbb` for "foo-bar-baz"). All tmux sessions for that repo use the prefix — the daemon becomes `px-daemon`, workers become `px-alice`, and so on.
+
+Each repo has its own `px.db` database, so tasks, workers, and portfolios are fully isolated. If two repos happen to produce the same prefix, the second one gets a numeric suffix (e.g., `fbb0`).
 
 ## Navigating tmux
 
-Each agent runs in a separate tmux session. Common commands:
+Each agent runs in a separate tmux session. Use `tmux list-sessions` to see all of them — sessions are grouped by their repo prefix.
 
 ```sh
-tmux list-sessions              # See all sessions (px, px-release, px-worker-name, px-daemon)
-tmux attach -t px               # Attach to coordinator
-tmux attach -t px-release       # Attach to release agent
+tmux list-sessions              # See all sessions across repos
+tmux attach -t px-daemon        # Attach to the daemon for the "px" repo
+tmux attach -t mca-release      # Attach to the release agent for the "my-cool-app" repo
 ```
 
 When attached to a tmux session:

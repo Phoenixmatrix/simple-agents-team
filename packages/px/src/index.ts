@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import type { Command } from "./command";
 import { getSettingsPath } from "./personas-data";
+import { getSessionPrefix } from "db";
 
 import { command as tracker } from "tracker";
 import { command as workers } from "workers";
@@ -48,6 +49,11 @@ function printHelp() {
   console.log(lines.join("\n"));
 }
 
+// Compute and cache session prefix for this repo
+if (!process.env.PX_SESSION_PREFIX) {
+  process.env.PX_SESSION_PREFIX = getSessionPrefix();
+}
+
 const args = Bun.argv.slice(2);
 const subcommand = args[0];
 
@@ -60,10 +66,11 @@ if (subcommand === "start") {
   // Start the coordinator — special case, not a subcommand
   const settingsPath = getSettingsPath("coordinator");
   const cwd = process.env.PX_CWD || process.cwd();
+  const prefix = process.env.PX_SESSION_PREFIX!;
 
-  // If not inside tmux, create or attach to a tmux session
-  const SESSION_NAME = "px";
+  // If not inside tmux, create a new tmux session and re-exec inside it
   if (!process.env.TMUX) {
+    const SESSION_NAME = prefix;
     let hasSession = false;
     try {
       await $`tmux has-session -t ${SESSION_NAME}`.quiet();
@@ -87,14 +94,14 @@ if (subcommand === "start") {
     }
   }
 
-  // Clear previous state and register coordinator worker
+  // Running inside tmux — stay in the current pane
   const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
   await $`px workers clear`.quiet();
-  await $`px workers add coordinator ${tmuxTarget} coordinator`.quiet();
+  await $`px workers add coordinator ${tmuxTarget} coordinator ${prefix}`.quiet();
 
-  // Configure tmux status bar for this session
+  // Configure tmux status bar for this pane's window
   await $`tmux set-option status-left-length 25`.quiet();
-  Bun.spawnSync(["tmux", "set-option", "status-left", " 🤖 coordinator "], { stdio: ["ignore", "ignore", "ignore"] });
+  Bun.spawnSync(["tmux", "set-option", "status-left", ` 🤖 coordinator (${prefix}) `], { stdio: ["ignore", "ignore", "ignore"] });
   await $`tmux set-option status-right ''`.quiet();
 
   // Spawn the release agent
