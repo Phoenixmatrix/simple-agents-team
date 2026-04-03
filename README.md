@@ -6,6 +6,8 @@
 
 A CLI tool that orchestrates multiple Claude Code agents using tmux, SQLite, and a task tracker. A coordinator agent dispatches work to worker agents, each running in its own tmux session. A release agent handles merging branches to main, and a daemon monitors the system.
 
+**Website:** [getpx.dev](https://getpx.dev)
+
 ## Install
 
 Download the latest binary from [GitHub Releases](https://github.com/Phoenixmatrix/px/releases).
