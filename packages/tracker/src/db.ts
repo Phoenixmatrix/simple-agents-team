@@ -14,4 +14,7 @@ export {
   unassignTask,
   deleteTask,
   clearTasks,
+  getPortfolio,
+  setPortfolio,
+  clearPortfolio,
 } from "db";

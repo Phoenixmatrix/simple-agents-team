@@ -1,7 +1,6 @@
 import { parseArgs } from "util";
 import { $ } from "bun";
-
-const SESSION_NAME = "px-daemon";
+import { getSessionPrefix } from "db";
 
 async function run(args: string[]) {
   const { values } = parseArgs({
@@ -24,6 +23,9 @@ Options:
   --app         Run the dashboard app directly (used internally)`);
     return;
   }
+
+  const prefix = process.env.PX_SESSION_PREFIX || getSessionPrefix();
+  const SESSION_NAME = `${prefix}-daemon`;
 
   // If --app, run the Ink app directly
   if (values.app) {
@@ -83,15 +85,16 @@ Options:
       }
     }
 
+    const cwd = process.env.PX_CWD || process.cwd();
     if (!sessionExists) {
-      await $`tmux new-session -d -s ${SESSION_NAME}`.quiet();
+      await $`tmux new-session -d -s ${SESSION_NAME} -c ${cwd}`.quiet();
     }
 
     // Get the tmux target
     const tmuxTarget = (await $`tmux display-message -p -t ${SESSION_NAME} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
     // Register in workers
-    await $`px workers add daemon ${tmuxTarget} daemon`.quiet();
+    await $`px workers add daemon ${tmuxTarget} daemon ${prefix}`.quiet();
 
     // Configure status bar
     await $`tmux set-option -t ${SESSION_NAME} status-left-length 25`.quiet();
@@ -100,7 +103,7 @@ Options:
     await $`tmux set-option -t ${SESSION_NAME} automatic-rename off`.quiet();
 
     // Launch the daemon app in the tmux session
-    await $`tmux send-keys -t ${tmuxTarget} 'px daemon --app' Enter`.quiet();
+    await $`tmux send-keys -t ${tmuxTarget} ${"PX_CWD='" + cwd + "' PX_SESSION_PREFIX='" + prefix + "' px daemon --app"} Enter`.quiet();
 
     console.log(`Daemon started in tmux session ${SESSION_NAME} (${tmuxTarget})`);
   }

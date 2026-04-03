@@ -27,7 +27,8 @@ Options:
 
   const workerName = positionals[0];
   const initialPrompt = positionals.slice(1).join(" ") || undefined;
-  const sessionName = `px-${workerName}`;
+  const prefix = process.env.PX_SESSION_PREFIX || "px";
+  const sessionName = `${prefix}-${workerName}`;
 
   // Create a new detached tmux session in the caller's working directory
   await $`tmux new-session -d -s ${sessionName} -c ${cwd}`.quiet();
@@ -36,7 +37,7 @@ Options:
   const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
   // Register the worker
-  await $`px workers add ${workerName} ${tmuxTarget} worker`.quiet();
+  await $`px workers add ${workerName} ${tmuxTarget} worker ${prefix}`.quiet();
 
   // Configure status bar for this session
   await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();
@@ -46,7 +47,7 @@ Options:
 
   // Launch claude in the new session
   const claudeArgs = `-w --settings '${settingsPath}' --model claude-sonnet-4-6`;
-  const envVars = `PX_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
+  const envVars = `PX_AGENT_NAME='${workerName}' PX_SESSION_PREFIX='${prefix}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
   if (initialPrompt) {
     const escaped = initialPrompt.replace(/'/g, "'\\''");
     const claudeCmd = `echo '${escaped}' | ${envVars} claude ${claudeArgs}`;

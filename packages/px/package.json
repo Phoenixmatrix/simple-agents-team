@@ -8,6 +8,7 @@
     "start": "exec bun src/index.ts"
   },
   "dependencies": {
+    "db": "workspace:*",
     "tracker": "workspace:*",
     "workers": "workspace:*",
     "hooks": "workspace:*",

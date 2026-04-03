@@ -6,7 +6,8 @@ async function run(_args: string[]) {
   const cwd = process.env.PX_CWD || process.cwd();
 
   const workerName = "release";
-  const sessionName = `px-${workerName}`;
+  const prefix = process.env.PX_SESSION_PREFIX || "px";
+  const sessionName = `${prefix}-${workerName}`;
 
   // Create a new detached tmux session in the caller's working directory
   await $`tmux new-session -d -s ${sessionName} -c ${cwd}`.quiet();
@@ -15,7 +16,7 @@ async function run(_args: string[]) {
   const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
   // Register the release worker
-  await $`px workers add ${workerName} ${tmuxTarget} release`.quiet();
+  await $`px workers add ${workerName} ${tmuxTarget} release ${prefix}`.quiet();
 
   // Configure status bar for this session
   await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();
@@ -25,7 +26,7 @@ async function run(_args: string[]) {
 
   // Launch claude in the new session
   const claudeArgs = `--settings '${settingsPath}' --model claude-sonnet-4-6`;
-  const envVars = `PX_AGENT_NAME='${workerName}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
+  const envVars = `PX_AGENT_NAME='${workerName}' PX_SESSION_PREFIX='${prefix}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
   const claudeCmd = `echo 'Wake up and initialize.' | ${envVars} claude ${claudeArgs}`;
   await $`tmux send-keys -t ${tmuxTarget} ${claudeCmd} Enter`.quiet();
 

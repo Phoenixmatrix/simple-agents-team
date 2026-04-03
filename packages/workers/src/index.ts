@@ -1,5 +1,5 @@
 import { parseArgs } from "util";
-import { openDatabase, getWorkers, addWorker, updateWorkerStatus, clearWorkers } from "db";
+import { openDatabase, getWorkers, addWorker, updateWorkerStatus, clearWorkers, clearWorkersByPrefix } from "db";
 import type { WorkerType } from "db";
 import * as ui from "./ui";
 
@@ -12,9 +12,10 @@ Commands:
   (none)                               List all workers
   json                                 List all workers as JSON
   list                                 List workers (type=worker) for agent use
-  add <name> <tmux_target> <type>      Add a worker (type: coordinator, daemon, worker)
+  add <name> <tmux_target> <type> [prefix]  Add a worker (type: coordinator, daemon, worker)
   status <name> <status>               Set a worker's status
   clear                                Delete all workers
+  clear-prefix <prefix>                Delete workers with a given prefix
 
 Options:
   -h, --help                           Show this help message`;
@@ -66,15 +67,16 @@ async function run(args: string[]) {
         const name = positionals[1];
         const tmuxTarget = positionals[2];
         const type = positionals[3] as WorkerType;
+        const prefix = positionals[4] || undefined;
         if (!name || !tmuxTarget || !type) {
-          ui.renderError("Usage: px workers add <name> <tmux_target> <type>");
+          ui.renderError("Usage: px workers add <name> <tmux_target> <type> [prefix]");
           process.exit(1);
         }
         if (!["coordinator", "daemon", "worker", "release"].includes(type)) {
           ui.renderError(`Invalid type "${type}". Must be: coordinator, daemon, worker, release`);
           process.exit(1);
         }
-        addWorker(db, name, tmuxTarget, type);
+        addWorker(db, name, tmuxTarget, type, "idle", prefix);
         ui.renderSuccess(`Added ${type} ${name} (tmux:${tmuxTarget})`);
         break;
       }
@@ -94,6 +96,17 @@ async function run(args: string[]) {
       case "clear": {
         clearWorkers(db);
         ui.renderSuccess("All workers cleared");
+        break;
+      }
+
+      case "clear-prefix": {
+        const pfx = positionals[1];
+        if (!pfx) {
+          ui.renderError("Usage: px workers clear-prefix <prefix>");
+          process.exit(1);
+        }
+        clearWorkersByPrefix(db, pfx);
+        ui.renderSuccess(`Workers with prefix "${pfx}" cleared`);
         break;
       }
 

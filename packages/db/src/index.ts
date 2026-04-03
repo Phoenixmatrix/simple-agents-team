@@ -11,20 +11,93 @@ import * as m003 from "./migrations/003-worker-tmux";
 import * as m004 from "./migrations/004-worker-type";
 import * as m005 from "./migrations/005-task-blocked-by";
 import * as m006 from "./migrations/006-task-portfolio";
+import * as m007 from "./migrations/007-worker-prefix";
+import * as m008 from "./migrations/008-portfolios";
 
-const migrations: Migration[] = [m001, m002, m003, m004, m005, m006];
+const migrations: Migration[] = [m001, m002, m003, m004, m005, m006, m007, m008];
 
 const DB_FILENAME = "px.db";
 
-function getGitRepoRoot(): string {
+function abbreviate(name: string): string {
+  // Split on hyphens, underscores, dots, camelCase, and uppercase runs
+  const parts = name
+    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1-$2") // ABCWidget → ABC-Widget
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")     // camelCase → camel-Case
+    .split(/[-_.]+/)
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    return parts.slice(0, 3).map((p) => p[0].toLowerCase()).join("");
+  }
+  // Single word: take first 2 chars
+  return name.slice(0, 2).toLowerCase();
+}
+
+function getTmuxSessionNames(): Set<string> {
+  try {
+    const output = execSync("tmux list-sessions -F '#{session_name}'", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+    return new Set(output.split("\n").filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
+function resolvePrefix(repoRoot: string): string {
+  const basename = repoRoot.split("/").pop() || "repo";
+  const base = abbreviate(basename);
+
+  // Check if we already have workers registered with a prefix in our DB
+  try {
+    const dbPath = resolve(repoRoot, DB_FILENAME);
+    if (existsSync(dbPath)) {
+      const db = new Database(dbPath);
+      db.run("PRAGMA journal_mode = WAL");
+      db.run("PRAGMA busy_timeout = 5000");
+      const row = db.query("SELECT session_prefix FROM workers WHERE session_prefix IS NOT NULL LIMIT 1").get() as { session_prefix: string } | null;
+      db.close();
+      if (row) return row.session_prefix;
+    }
+  } catch {
+    // DB may not exist yet or lack the column
+  }
+
+  // No existing prefix — check tmux sessions for conflicts
+  const sessions = getTmuxSessionNames();
+  let candidate = base;
+  // A prefix is "taken" if a tmux session starts with it (e.g., "fbb-daemon")
+  const isTaken = (pfx: string) => {
+    for (const s of sessions) {
+      if (s === pfx || s.startsWith(`${pfx}-`)) return true;
+    }
+    return false;
+  };
+
+  if (!isTaken(candidate)) return candidate;
+
+  let i = 0;
+  do {
+    candidate = `${base}${i}`;
+    i++;
+  } while (isTaken(candidate));
+
+  return candidate;
+}
+
+export function getGitRepoRoot(): string {
+  // Use PX_CWD as the working directory because bin/px cds to the px repo
+  // root before running bun, so process.cwd() is always the px repo itself.
+  const cwd = process.env.PX_CWD || process.cwd();
   // Use --git-common-dir so worktrees resolve to the main repo's .git
   const gitCommonDir = execSync("git rev-parse --git-common-dir", {
     encoding: "utf-8",
+    cwd,
     stdio: ["pipe", "pipe", "pipe"],
   }).trim();
   // --git-common-dir returns a path relative to cwd (or absolute).
   // The repo root is the parent of the .git directory.
-  return dirname(resolve(gitCommonDir));
+  return dirname(resolve(cwd, gitCommonDir));
 }
 
 function ensureGitignored(repoRoot: string) {
@@ -43,6 +116,13 @@ function ensureGitignored(repoRoot: string) {
   } else {
     writeFileSync(gitignorePath, DB_FILENAME + "\n");
   }
+}
+
+export function getSessionPrefix(): string {
+  if (process.env.PX_SESSION_PREFIX) {
+    return process.env.PX_SESSION_PREFIX;
+  }
+  return resolvePrefix(getGitRepoRoot());
 }
 
 export function getDbPath(): string {
@@ -83,6 +163,7 @@ export interface Worker {
   type: WorkerType;
   status: string;
   tmux_target: string | null;
+  session_prefix: string | null;
 }
 
 // --- Task queries ---
@@ -165,15 +246,23 @@ export function clearTasks(db: Database) {
 
 export function getWorkers(db: Database, type?: WorkerType): Worker[] {
   if (type) {
-    return db.query("SELECT id, worker_name, type, status, tmux_target FROM workers WHERE type = ?").all(type) as Worker[];
+    return db.query("SELECT id, worker_name, type, status, tmux_target, session_prefix FROM workers WHERE type = ?").all(type) as Worker[];
   }
-  return db.query("SELECT id, worker_name, type, status, tmux_target FROM workers").all() as Worker[];
+  return db.query("SELECT id, worker_name, type, status, tmux_target, session_prefix FROM workers").all() as Worker[];
 }
 
-export function addWorker(db: Database, workerName: string, tmuxTarget: string, type: WorkerType, status: string = "idle") {
+export function getWorkersByPrefix(db: Database, prefix: string): Worker[] {
+  return db.query("SELECT id, worker_name, type, status, tmux_target, session_prefix FROM workers WHERE session_prefix = ?").all(prefix) as Worker[];
+}
+
+export function clearWorkersByPrefix(db: Database, prefix: string) {
+  db.run("DELETE FROM workers WHERE session_prefix = ?", [prefix]);
+}
+
+export function addWorker(db: Database, workerName: string, tmuxTarget: string, type: WorkerType, status: string = "idle", prefix?: string) {
   db.run(
-    "INSERT INTO workers (worker_name, tmux_target, type, status) VALUES (?, ?, ?, ?) ON CONFLICT(worker_name) DO UPDATE SET tmux_target = ?, type = ?, status = ?",
-    [workerName, tmuxTarget, type, status, tmuxTarget, type, status],
+    "INSERT INTO workers (worker_name, tmux_target, type, status, session_prefix) VALUES (?, ?, ?, ?, ?) ON CONFLICT(worker_name) DO UPDATE SET tmux_target = ?, type = ?, status = ?, session_prefix = ?",
+    [workerName, tmuxTarget, type, status, prefix ?? null, tmuxTarget, type, status, prefix ?? null],
   );
 }
 
@@ -188,4 +277,22 @@ export function removeWorker(db: Database, workerName: string): boolean {
 
 export function clearWorkers(db: Database) {
   db.run("DELETE FROM workers");
+}
+
+// --- Portfolio queries ---
+
+export function getPortfolio(db: Database, agentName: string): string | null {
+  const row = db.query("SELECT name FROM portfolios WHERE agent_name = ?").get(agentName) as { name: string } | null;
+  return row?.name ?? null;
+}
+
+export function setPortfolio(db: Database, agentName: string, name: string) {
+  db.run(
+    "INSERT INTO portfolios (agent_name, name) VALUES (?, ?) ON CONFLICT(agent_name) DO UPDATE SET name = ?",
+    [agentName, name, name],
+  );
+}
+
+export function clearPortfolio(db: Database, agentName: string) {
+  db.run("DELETE FROM portfolios WHERE agent_name = ?", [agentName]);
 }
