@@ -26,6 +26,18 @@
         "@types/react": "^19.2.14",
       },
     },
+    "packages/dashboard": {
+      "name": "dashboard",
+      "version": "1.0.0",
+      "dependencies": {
+        "db": "workspace:*",
+        "ink": "^6.8.0",
+        "react": "^19.2.4",
+      },
+      "devDependencies": {
+        "@types/react": "^19.2.14",
+      },
+    },
     "packages/db": {
       "name": "db",
       "version": "1.0.0",
@@ -33,6 +45,9 @@
     "packages/hooks": {
       "name": "hooks",
       "version": "1.0.0",
+      "dependencies": {
+        "db": "workspace:*",
+      },
     },
     "packages/px": {
       "name": "px",
@@ -42,6 +57,8 @@
       },
       "dependencies": {
         "daemon": "workspace:*",
+        "dashboard": "workspace:*",
+        "db": "workspace:*",
         "hooks": "workspace:*",
         "tracker": "workspace:*",
         "unique-names-generator": "^4.7.1",
@@ -497,6 +514,8 @@
     "csstype": ["csstype@3.2.3", "", {}, "sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ=="],
 
     "daemon": ["daemon@workspace:packages/daemon"],
+
+    "dashboard": ["dashboard@workspace:packages/dashboard"],
 
     "db": ["db@workspace:packages/db"],
 

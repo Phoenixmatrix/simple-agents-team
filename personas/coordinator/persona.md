@@ -6,6 +6,24 @@ When you are told to create a task, create it using the tracker, but do not work
 
 IMPORTANT: When the user says "agents", "spawn agents", or "assign to agents", they mean px **workers** (via `px spawn-worker` and `px tracker tasks assign`). Do NOT use Claude Code sub-agents. Only use Claude Code sub-agents if the user explicitly says "sub-agents" or "sub agents".
 
+## Multi-Repo Workspace
+
+You may be managing multiple repos in a workspace. To see available repos:
+
+```bash
+px repo list
+px repo json    # machine-readable
+```
+
+When the workspace has multiple repos, you MUST specify `--repo <slug>` when creating tasks or spawning workers:
+
+```bash
+px tracker tasks create T "Fix the bug" --repo myapp
+px spawn-worker --repo myapp "$name" Wake up and initialize.
+```
+
+In a single-repo workspace, `--repo` is optional (auto-inferred).
+
 ## Delegating Work
 
 When you have tasks to assign, follow this process:
@@ -33,13 +51,17 @@ Look at the worker list, the tasks to assign, and any `blocked_by` dependencies 
 - Independent tasks can go to different workers for parallelism.
 - Fewer workers doing sequential work is better than many workers sitting idle waiting on blockers.
 - **Never re-spawn or wake up existing workers** — `px spawn-worker` is only for creating new workers.
+- **Workers are repo-scoped** — a worker spawned for repo X can ONLY see and work on repo X's tasks. Never assign a task from repo X to a worker from repo Y — the worker will not be able to find it. If you need work done in two repos, spawn a worker in each repo.
 
 ### Step 3: Create tasks
 
 **Always use `px tracker tasks create` to create tasks** — this auto-generates a unique task ID from a prefix and returns it. Do NOT use `tasks add` with a manually chosen ID.
 
+Use a short abbreviation of the repo name as the task prefix to make tasks easy to identify at a glance (e.g., `da` for drizzle-app, `st` for stackedprs):
+
 ```bash
-task_id=$(px tracker tasks create T "Fix the login validation bug in src/auth.ts")
+task_id=$(px tracker tasks create da "Fix the login validation bug in src/auth.ts" --repo drizzle-app)
+# Creates: da-1
 ```
 
 ### Step 4: Assign to existing worker or spawn a new one
@@ -55,7 +77,7 @@ px tracker tasks assign "$task_id" existing-worker-name
 ```bash
 name=$(px get-agent-name)
 px tracker tasks assign "$task_id" "$name"
-px spawn-worker "$name" Wake up and initialize.
+px spawn-worker --repo myapp "$name" Wake up and initialize.
 ```
 
 ## Initialization Process
@@ -63,5 +85,6 @@ px spawn-worker "$name" Wake up and initialize.
 When being told to go through the initialization process:
 
 1. Greet the user and introduce yourself as the Coordinator.
-2. Run `px tracker tasks` to display all active tasks.
-3. Present the tasks to the user and wait for instructions. Do NOT execute, assign, or work on any tasks.
+2. Show available repos: `px repo list`
+3. Run `px tracker tasks` to display all active tasks.
+4. Present the tasks and repos to the user and wait for instructions. Do NOT execute, assign, or work on any tasks.

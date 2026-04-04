@@ -1,7 +1,8 @@
 import { $ } from "bun";
 import type { Command } from "./command";
 import { getSettingsPath } from "./personas-data";
-import { getSessionPrefix } from "db";
+import { getSessionPrefix, openDatabase, clearWorkersByWorkspace, addWorker } from "db";
+import { detectRepos, isGitRepo, resolveRepoPrefix } from "./workspace";
 
 import { command as tracker } from "tracker";
 import { command as workers } from "workers";
@@ -13,6 +14,8 @@ import { command as spawnWorker } from "./spawn-worker";
 import { command as spawnRelease } from "./spawn-release";
 import { command as getAgentName } from "./get-agent-name";
 import { command as personas } from "./personas";
+import { command as repo } from "./repo";
+import { command as dashboard } from "dashboard";
 
 const commands: Command[] = [
   tracker,
@@ -23,6 +26,8 @@ const commands: Command[] = [
   spawnRelease,
   getAgentName,
   personas,
+  repo,
+  dashboard,
 ];
 
 const commandMap = new Map(commands.map((c) => [c.name, c]));
@@ -49,9 +54,18 @@ function printHelp() {
   console.log(lines.join("\n"));
 }
 
-// Compute and cache session prefix for this repo
+// Compute and cache session prefix — for non-start commands, use the existing logic.
+// For "start", the prefix is derived from the workspace dir (handled below).
 if (!process.env.PX_SESSION_PREFIX) {
-  process.env.PX_SESSION_PREFIX = getSessionPrefix();
+  const isStart = Bun.argv[2] === "start";
+  if (!isStart) {
+    try {
+      process.env.PX_SESSION_PREFIX = getSessionPrefix();
+    } catch {
+      // getSessionPrefix() fails if not in a git repo (e.g., workspace directory).
+      // That's fine — commands like dashboard/repo work without it.
+    }
+  }
 }
 
 const args = Bun.argv.slice(2);
@@ -66,11 +80,18 @@ if (subcommand === "start") {
   // Start the coordinator — special case, not a subcommand
   const settingsPath = getSettingsPath("coordinator");
   const cwd = process.env.PX_CWD || process.cwd();
-  const prefix = process.env.PX_SESSION_PREFIX!;
+
+  // Workspace = the directory we're starting from
+  const workspace = cwd;
+
+  // Derive workspace prefix for coordinator/daemon session naming
+  const wsPrefix = resolveRepoPrefix(workspace);
+  process.env.PX_SESSION_PREFIX = wsPrefix;
+  process.env.PX_WORKSPACE = workspace;
 
   // If not inside tmux, create a new tmux session and re-exec inside it
   if (!process.env.TMUX) {
-    const SESSION_NAME = prefix;
+    const SESSION_NAME = wsPrefix;
     let hasSession = false;
     try {
       await $`tmux has-session -t ${SESSION_NAME}`.quiet();
@@ -89,6 +110,7 @@ if (subcommand === "start") {
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
+        env: { ...process.env, PX_WORKSPACE: workspace, PX_SESSION_PREFIX: wsPrefix },
       });
       process.exit(proc.exitCode);
     }
@@ -96,25 +118,42 @@ if (subcommand === "start") {
 
   // Running inside tmux — stay in the current pane
   const tmuxTarget = (await $`tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
-  await $`px workers clear`.quiet();
-  await $`px workers add coordinator ${tmuxTarget} coordinator ${prefix}`.quiet();
+
+  // Clear workers scoped to this workspace and register coordinator
+  {
+    const db = openDatabase();
+    clearWorkersByWorkspace(db, workspace);
+    addWorker(db, "coordinator", tmuxTarget, "coordinator", "idle", wsPrefix, undefined, workspace);
+    db.close();
+  }
 
   // Configure tmux status bar for this pane's window
   await $`tmux set-option status-left-length 25`.quiet();
-  Bun.spawnSync(["tmux", "set-option", "status-left", ` 🤖 coordinator (${prefix}) `], { stdio: ["ignore", "ignore", "ignore"] });
+  Bun.spawnSync(["tmux", "set-option", "status-left", ` 🤖 coordinator (${wsPrefix}) `], { stdio: ["ignore", "ignore", "ignore"] });
   await $`tmux set-option status-right ''`.quiet();
 
-  // Spawn the release agent
-  await $`px spawn-release`.quiet();
+  // Detect repos in workspace and spawn a release agent for each
+  const repos = detectRepos(workspace);
+  for (const repo of repos) {
+    try {
+      await $`px spawn-release --repo ${repo.slug}`.quiet();
+    } catch (e) {
+      console.error(`Failed to spawn release agent for ${repo.slug}:`, e);
+    }
+  }
 
-  const initialPrompt = "Go through the initialization process";
+  const repoSummary = repos.length > 0
+    ? repos.map((r) => r.slug).join(", ")
+    : "(no repos found)";
+
+  const initialPrompt = `Go through the initialization process. Workspace: ${workspace}. Repos: ${repoSummary}`;
 
   const proc = Bun.spawn(["claude", "--settings", settingsPath], {
     cwd,
     stdin: new TextEncoder().encode(initialPrompt),
     stdout: "inherit",
     stderr: "inherit",
-    env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1", PX_AGENT_NAME: "coordinator" },
+    env: { ...process.env, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1", PX_AGENT_NAME: "coordinator", PX_WORKSPACE: workspace },
   });
   await proc.exited;
 } else {

@@ -68,7 +68,8 @@ Commands:
 Options:
   -h, --help                     Show this help message
   --blocked-by <id>              Set a blocking task (for create/add)
-  --portfolio <name>             Set portfolio for a task (for create/add)`;
+  --portfolio <name>             Set portfolio for a task (for create/add)
+  --repo <slug>                  Scope to a specific repo (default: PX_REPO env)`;
 
 async function run(args: string[]) {
   const { values, positionals } = parseArgs({
@@ -77,6 +78,7 @@ async function run(args: string[]) {
       help: { type: "boolean", short: "h" },
       "blocked-by": { type: "string" },
       portfolio: { type: "string" },
+      repo: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -91,6 +93,7 @@ async function run(args: string[]) {
 
   const db = openDatabase();
   const agentName = process.env.PX_AGENT_NAME ?? "default";
+  const repo = values.repo ?? process.env.PX_REPO ?? undefined;
 
   if (resource === "portfolio") {
     try {
@@ -129,14 +132,14 @@ async function run(args: string[]) {
     switch (resource) {
       case "tasks": {
         if (!action) {
-          ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"]));
+          ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"], repo));
         } else if (action === "me") {
           const workerName = process.env.PX_AGENT_NAME;
           if (!workerName) {
             ui.renderError("PX_AGENT_NAME environment variable is not set");
             process.exit(1);
           }
-          ui.renderTasks(getTasksForWorker(db, workerName));
+          ui.renderTasks(getTasksForWorker(db, workerName, repo));
         } else if (action === "json") {
           const sub = positionals[2];
           let tasks;
@@ -146,20 +149,20 @@ async function run(args: string[]) {
               console.error("PX_AGENT_NAME environment variable is not set");
               process.exit(1);
             }
-            tasks = getTasksForWorker(db, workerName);
+            tasks = getTasksForWorker(db, workerName, repo);
           } else {
-            tasks = getTasks(db, ["ready", "assigned", "in-progress"]);
+            tasks = getTasks(db, ["ready", "assigned", "in-progress"], repo);
           }
           console.log(JSON.stringify(tasks, null, 2));
         } else if (action === "ready") {
-          ui.renderTasks(getTasks(db, "ready"));
+          ui.renderTasks(getTasks(db, "ready", repo));
         } else if (action === "show") {
           const taskId = positionals[2];
           if (!taskId) {
             ui.renderError("Usage: px tracker tasks show <id>");
             process.exit(1);
           }
-          const task = getTask(db, taskId);
+          const task = getTask(db, taskId, repo);
           if (task) {
             ui.renderTasks([task]);
           } else {
@@ -172,7 +175,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks start <id>");
             process.exit(1);
           }
-          const result = startTask(db, taskId);
+          const result = startTask(db, taskId, repo);
           if (result.ok) {
             ui.renderSuccess(`Task ${taskId} started`);
           } else if (result.blocked) {
@@ -188,7 +191,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks done <id>");
             process.exit(1);
           }
-          if (completeTask(db, taskId)) {
+          if (completeTask(db, taskId, repo)) {
             ui.renderSuccess(`Task ${taskId} marked as done`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
@@ -201,7 +204,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks assign <id> <worker>");
             process.exit(1);
           }
-          if (assignTask(db, taskId, workerName)) {
+          if (assignTask(db, taskId, workerName, repo)) {
             ui.renderSuccess(`Task ${taskId} assigned to ${workerName}`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
@@ -213,7 +216,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks unassign <id>");
             process.exit(1);
           }
-          if (unassignTask(db, taskId)) {
+          if (unassignTask(db, taskId, repo)) {
             ui.renderSuccess(`Task ${taskId} unassigned`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
@@ -231,7 +234,7 @@ async function run(args: string[]) {
             ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
             process.exit(1);
           }
-          if (addTask(db, taskId, desc, values["blocked-by"], portfolio)) {
+          if (addTask(db, taskId, desc, values["blocked-by"], portfolio, repo)) {
             ui.renderSuccess(`Added task ${taskId}`);
           } else {
             ui.renderError(`Task ${taskId} already exists`);
@@ -249,7 +252,7 @@ async function run(args: string[]) {
             ui.renderError(`Invalid portfolio name: "${portfolio}" (must be a valid git branch name)`);
             process.exit(1);
           }
-          const taskId = createTask(db, prefix, desc, values["blocked-by"], portfolio);
+          const taskId = createTask(db, prefix, desc, values["blocked-by"], portfolio, repo);
           console.log(taskId);
         } else if (action === "delete") {
           const taskId = positionals[2];
@@ -257,7 +260,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks delete <id>");
             process.exit(1);
           }
-          if (deleteTask(db, taskId)) {
+          if (deleteTask(db, taskId, repo)) {
             ui.renderSuccess(`Deleted task ${taskId}`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
@@ -274,7 +277,7 @@ async function run(args: string[]) {
       }
 
       case "status": {
-        ui.renderStatus(getTasks(db, ["ready", "assigned", "in-progress"]), getWorkers(db));
+        ui.renderStatus(getTasks(db, ["ready", "assigned", "in-progress"], repo), getWorkers(db, undefined, repo));
         break;
       }
 
