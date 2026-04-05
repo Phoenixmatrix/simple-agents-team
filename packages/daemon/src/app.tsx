@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { render, Text, Box } from "ink";
-import { openDatabase, getWorkers, type Worker } from "db";
+import { openDatabase, getWorkers, getWorkersByWorkspace, type Worker } from "db";
 import { TmuxSession } from "tmux-manager";
 
 const IDLE_THRESHOLD_MS = 20_000;
@@ -11,13 +11,16 @@ function StatusDashboard() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const idleSince = useRef<Map<string, number>>(new Map());
   const nudged = useRef<Set<string>>(new Set());
+  const workspace = process.env.PX_WORKSPACE;
 
   useEffect(() => {
     const poll = async () => {
       let currentWorkers: Worker[] = [];
       try {
         const db = openDatabase();
-        currentWorkers = getWorkers(db);
+        currentWorkers = workspace
+          ? getWorkersByWorkspace(db, workspace)
+          : getWorkers(db);
         db.close();
       } catch {
         return;
@@ -74,6 +77,19 @@ function StatusDashboard() {
     }
   };
 
+  // Group workers by repo
+  const global: Worker[] = [];
+  const byRepo = new Map<string, Worker[]>();
+  for (const w of workers) {
+    if (!w.repo) {
+      global.push(w);
+    } else {
+      const list = byRepo.get(w.repo) ?? [];
+      list.push(w);
+      byRepo.set(w.repo, list);
+    }
+  }
+
   return (
     <Box flexDirection="column" padding={1}>
       <Text bold color="cyan">SAT Dashboard</Text>
@@ -81,18 +97,35 @@ function StatusDashboard() {
         <Box gap={2} marginBottom={1}>
           <Box width={20}><Text bold color="yellow">Worker</Text></Box>
           <Box width={12}><Text bold color="yellow">Status</Text></Box>
+          <Box width={10}><Text bold color="yellow">Repo</Text></Box>
           <Box><Text bold color="yellow">Session</Text></Box>
         </Box>
         {workers.length === 0 ? (
           <Text color="gray">  No workers registered</Text>
         ) : (
-          workers.map((w) => (
-            <Box key={w.id} gap={2}>
-              <Box width={20}><Text bold color="magenta">{w.worker_name}</Text></Box>
-              <Box width={12}><Text color={statusColor(w.status)}>{w.status}</Text></Box>
-              <Box><Text color="cyan">{w.tmux_target ?? "-"}</Text></Box>
-            </Box>
-          ))
+          <>
+            {global.map((w) => (
+              <Box key={w.id} gap={2}>
+                <Box width={20}><Text bold color="magenta">{w.worker_name}</Text></Box>
+                <Box width={12}><Text color={statusColor(w.status)}>{w.status}</Text></Box>
+                <Box width={10}><Text color="gray">-</Text></Box>
+                <Box><Text color="cyan">{w.tmux_target ?? "-"}</Text></Box>
+              </Box>
+            ))}
+            {[...byRepo.entries()].map(([repoSlug, repoWorkers]) => (
+              <Box key={repoSlug} flexDirection="column" marginTop={global.length > 0 || byRepo.size > 1 ? 1 : 0}>
+                <Text bold color="blue">{repoSlug}</Text>
+                {repoWorkers.map((w) => (
+                  <Box key={w.id} gap={2}>
+                    <Box width={20}><Text bold color="magenta">{w.worker_name}</Text></Box>
+                    <Box width={12}><Text color={statusColor(w.status)}>{w.status}</Text></Box>
+                    <Box width={10}><Text color="gray">{repoSlug}</Text></Box>
+                    <Box><Text color="cyan">{w.tmux_target ?? "-"}</Text></Box>
+                  </Box>
+                ))}
+              </Box>
+            ))}
+          </>
         )}
       </Box>
       <Box marginTop={1}><Text color="gray">{workers.length} worker(s)</Text></Box>

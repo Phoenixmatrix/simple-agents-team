@@ -1,17 +1,23 @@
 import { $ } from "bun";
+import { openDatabase, getWorkersByWorkspace, getWorkers, clearWorkersByWorkspace, clearWorkers, type Worker } from "db";
 
-const prefix = process.env.PX_SESSION_PREFIX;
+const workspace = process.env.PX_WORKSPACE;
 
-// Get all workers and kill tmux sessions for non-coordinator workers matching our prefix
 try {
-  const output = (await $`px workers json`.quiet()).text().trim();
-  const workers = JSON.parse(output) as { worker_name: string; tmux_target: string | null; session_prefix: string | null }[];
+  const db = openDatabase();
+
+  // Get workers to kill — try workspace scoping, fall back to all
+  let workers: Worker[] = [];
+  if (workspace) {
+    workers = getWorkersByWorkspace(db, workspace);
+  }
+  if (workers.length === 0) {
+    workers = getWorkers(db);
+  }
 
   for (const worker of workers) {
-    if (worker.worker_name === "coordinator") continue;
+    if (worker.type === "coordinator") continue;
     if (!worker.tmux_target) continue;
-    // Only kill workers belonging to this session's prefix
-    if (prefix && worker.session_prefix !== prefix) continue;
 
     const sessionName = worker.tmux_target.split(":")[0];
     try {
@@ -20,12 +26,14 @@ try {
       // Session may already be gone
     }
   }
-} catch {
-  // Workers command may fail if db doesn't exist yet
-}
 
-if (prefix) {
-  await $`px workers clear-prefix ${prefix}`.quiet();
-} else {
-  await $`px workers clear`.quiet();
+  // Clear workers from DB
+  if (workspace) {
+    clearWorkersByWorkspace(db, workspace);
+  } else {
+    clearWorkers(db);
+  }
+  db.close();
+} catch {
+  // DB may not exist yet
 }

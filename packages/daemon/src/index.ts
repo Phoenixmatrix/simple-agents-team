@@ -93,8 +93,11 @@ Options:
     // Get the tmux target
     const tmuxTarget = (await $`tmux display-message -p -t ${SESSION_NAME} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
-    // Register in workers
-    await $`px workers add daemon ${tmuxTarget} daemon ${prefix}`.quiet();
+    // Register in workers (using DB directly for workspace support)
+    const { openDatabase: openDb, addWorker: addW } = await import("db");
+    const db = openDb();
+    addW(db, "daemon", tmuxTarget, "daemon", "idle", prefix, undefined, process.env.PX_WORKSPACE || cwd);
+    db.close();
 
     // Configure status bar
     await $`tmux set-option -t ${SESSION_NAME} status-left-length 25`.quiet();
@@ -103,7 +106,8 @@ Options:
     await $`tmux set-option -t ${SESSION_NAME} automatic-rename off`.quiet();
 
     // Launch the daemon app in the tmux session
-    await $`tmux send-keys -t ${tmuxTarget} ${"PX_CWD='" + cwd + "' PX_SESSION_PREFIX='" + prefix + "' px daemon --app"} Enter`.quiet();
+    const workspace = process.env.PX_WORKSPACE || cwd;
+    await $`tmux send-keys -t ${tmuxTarget} ${"PX_CWD='" + cwd + "' PX_SESSION_PREFIX='" + prefix + "' PX_WORKSPACE='" + workspace + "' px daemon --app"} Enter`.quiet();
 
     console.log(`Daemon started in tmux session ${SESSION_NAME} (${tmuxTarget})`);
   }

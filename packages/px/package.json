@@ -13,6 +13,7 @@
     "workers": "workspace:*",
     "hooks": "workspace:*",
     "daemon": "workspace:*",
+    "dashboard": "workspace:*",
     "unique-names-generator": "^4.7.1"
   }
 }

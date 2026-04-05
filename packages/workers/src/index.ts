@@ -1,5 +1,5 @@
 import { parseArgs } from "util";
-import { openDatabase, getWorkers, addWorker, updateWorkerStatus, clearWorkers, clearWorkersByPrefix } from "db";
+import { openDatabase, getWorkers, addWorker, updateWorkerStatus, clearWorkers, clearWorkersByPrefix, clearWorkersByWorkspace } from "db";
 import type { WorkerType } from "db";
 import * as ui from "./ui";
 
@@ -12,19 +12,22 @@ Commands:
   (none)                               List all workers
   json                                 List all workers as JSON
   list                                 List workers (type=worker) for agent use
-  add <name> <tmux_target> <type> [prefix]  Add a worker (type: coordinator, daemon, worker)
+  add <name> <tmux_target> <type> [prefix]  Add a worker
   status <name> <status>               Set a worker's status
   clear                                Delete all workers
   clear-prefix <prefix>                Delete workers with a given prefix
+  clear-workspace <path>               Delete workers in a workspace
 
 Options:
-  -h, --help                           Show this help message`;
+  -h, --help                           Show this help message
+  --repo <slug>                        Filter by repo`;
 
 async function run(args: string[]) {
   const { values, positionals } = parseArgs({
     args,
     options: {
       help: { type: "boolean", short: "h" },
+      repo: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -34,9 +37,11 @@ async function run(args: string[]) {
     return;
   }
 
+  const repo = values.repo ?? process.env.PX_REPO ?? undefined;
+
   if (positionals.length === 0) {
     const db = openDatabase();
-    ui.renderWorkers(getWorkers(db));
+    ui.renderWorkers(getWorkers(db, undefined, repo));
     db.close();
     return;
   }
@@ -47,12 +52,12 @@ async function run(args: string[]) {
   try {
     switch (action) {
       case "json": {
-        console.log(JSON.stringify(getWorkers(db)));
+        console.log(JSON.stringify(getWorkers(db, undefined, repo)));
         break;
       }
 
       case "list": {
-        const workers = getWorkers(db, "worker");
+        const workers = getWorkers(db, "worker", repo);
         if (workers.length === 0) {
           console.log("No workers available.");
         } else {
@@ -107,6 +112,17 @@ async function run(args: string[]) {
         }
         clearWorkersByPrefix(db, pfx);
         ui.renderSuccess(`Workers with prefix "${pfx}" cleared`);
+        break;
+      }
+
+      case "clear-workspace": {
+        const ws = positionals[1];
+        if (!ws) {
+          ui.renderError("Usage: px workers clear-workspace <path>");
+          process.exit(1);
+        }
+        clearWorkersByWorkspace(db, ws);
+        ui.renderSuccess(`Workers in workspace "${ws}" cleared`);
         break;
       }
 

@@ -14,6 +14,7 @@
     "spawn-worker": "bun packages/px/src/spawn-worker.ts",
     "spawn-release": "bun packages/px/src/spawn-release.ts",
     "daemon": "bun packages/daemon/src/index.ts",
+    "dashboard": "bun packages/dashboard/src/index.ts",
     "hooks": "bun packages/hooks/src/index.ts",
     "personas": "bun packages/px/src/personas.ts"
   },
