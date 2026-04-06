@@ -52,8 +52,8 @@ Options:
     process.exit(1);
   }
 
-  const workerName = `${repoSlug}-release`;
   const repoPrefix = resolveRepoPrefix(repoPath);
+  const workerName = `${repoPrefix}-release`;
   const sessionName = `${repoPrefix}-release`;
 
   // Create a new detached tmux session in the repo directory
