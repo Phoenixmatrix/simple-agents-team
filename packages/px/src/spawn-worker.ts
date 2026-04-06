@@ -1,5 +1,4 @@
 import { parseArgs } from "util";
-import { resolve } from "path";
 import { $ } from "bun";
 import { getSettingsPath } from "./personas-data";
 import { detectRepos, resolveRepoPrefix } from "./workspace";
@@ -66,10 +65,13 @@ Options:
   // Get the tmux target
   const tmuxTarget = (await $`tmux display-message -p -t ${sessionName} '#{session_name}:#{window_index}.#{pane_index}'`.quiet()).text().trim();
 
+  // Build the full agent name used in the DB and as PX_AGENT_NAME
+  const agentName = `${repoPrefix}-${workerName}`;
+
   // Register the worker with repo and workspace context
   {
     const db = openDatabase();
-    addWorker(db, workerName, tmuxTarget, "worker", "idle", repoPrefix, repoSlug, workspace);
+    addWorker(db, agentName, tmuxTarget, "worker", "idle", repoPrefix, repoSlug, workspace);
 
     // Auto-spawn release agent for this repo if none exists
     const existingRelease = getWorkers(db, "release", repoSlug!);
@@ -82,13 +84,13 @@ Options:
 
   // Configure status bar for this session
   await $`tmux set-option -t ${sessionName} status-left-length 25`.quiet();
-  Bun.spawnSync(["tmux", "set-option", "-t", sessionName, "status-left", ` 🤖 ${workerName} `], { stdio: ["ignore", "ignore", "ignore"] });
+  Bun.spawnSync(["tmux", "set-option", "-t", sessionName, "status-left", ` 🤖 ${agentName} `], { stdio: ["ignore", "ignore", "ignore"] });
   await $`tmux set-option -t ${sessionName} status-right ''`.quiet();
   await $`tmux set-option -t ${sessionName} automatic-rename off`.quiet();
 
   // Launch claude in the new session
   const claudeArgs = `-w --settings '${settingsPath}' --model claude-sonnet-4-6`;
-  const envVars = `PX_AGENT_NAME='${workerName}' PX_SESSION_PREFIX='${repoPrefix}' PX_REPO='${repoSlug}' PX_WORKSPACE='${workspace}' PX_CWD='${repoPath}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
+  const envVars = `PX_AGENT_NAME='${agentName}' PX_SESSION_PREFIX='${repoPrefix}' PX_REPO='${repoSlug}' PX_WORKSPACE='${workspace}' PX_CWD='${repoPath}' CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`;
   if (initialPrompt) {
     const escaped = initialPrompt.replace(/'/g, "'\\''");
     const claudeCmd = `echo '${escaped}' | ${envVars} claude ${claudeArgs}`;
@@ -98,7 +100,7 @@ Options:
     await $`tmux send-keys -t ${tmuxTarget} ${claudeCmd} Enter`.quiet();
   }
 
-  console.log(`Spawned ${workerName} in tmux session ${sessionName} (${tmuxTarget}) [repo: ${repoSlug}]`);
+  console.log(`Spawned ${agentName} in tmux session ${sessionName} (${tmuxTarget}) [repo: ${repoSlug}]`);
 }
 
 export const command = {
