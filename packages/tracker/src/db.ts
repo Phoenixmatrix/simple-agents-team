@@ -17,4 +17,5 @@ export {
   getPortfolio,
   setPortfolio,
   clearPortfolio,
+  abbreviate,
 } from "db";

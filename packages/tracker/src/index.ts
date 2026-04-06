@@ -17,6 +17,7 @@ import {
   getPortfolio,
   setPortfolio,
   clearPortfolio,
+  abbreviate,
 } from "./db";
 import * as ui from "./ui";
 
@@ -51,7 +52,7 @@ Commands:
   tasks json                     Output all active tasks as JSON
   tasks json me                  Output my tasks as JSON
   tasks add <id> <description>   Add a task with explicit id (status: ready)
-  tasks create <prefix> <desc>   Create a task with auto-generated id (returns id)
+  tasks create [prefix] <desc>   Create a task with auto-generated id (returns id)
   tasks start <id>               Set a task to in-progress
   tasks done <id>                Mark a task as done
   tasks assign <id> <worker>     Assign a task to a worker
@@ -241,10 +242,22 @@ async function run(args: string[]) {
             process.exit(1);
           }
         } else if (action === "create") {
-          const prefix = positionals[2];
-          const desc = positionals.slice(3).join(" ");
+          let prefix: string;
+          let desc: string;
+          if (positionals[3]) {
+            // Both prefix and description provided
+            prefix = positionals[2];
+            desc = positionals.slice(3).join(" ");
+          } else if (repo) {
+            // Only description provided; derive prefix from repo
+            prefix = abbreviate(repo);
+            desc = positionals.slice(2).join(" ");
+          } else {
+            prefix = "";
+            desc = "";
+          }
           if (!prefix || !desc) {
-            ui.renderError("Usage: px tracker tasks create <prefix> <description>");
+            ui.renderError("Usage: px tracker tasks create [prefix] <description>\n       (prefix defaults to repo abbreviation when --repo is set)");
             process.exit(1);
           }
           const portfolio = resolvePortfolio(db, agentName, values.portfolio);
