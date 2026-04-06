@@ -73,6 +73,15 @@ Options:
     const db = openDatabase();
     addWorker(db, agentName, tmuxTarget, "worker", "idle", repoPrefix, repoSlug, workspace);
 
+    // Fix task assignments: coordinator may assign by base name before spawning.
+    // Re-map any tasks assigned to the base name to the prefixed agent name.
+    if (agentName !== workerName) {
+      db.run(
+        "UPDATE tasks SET assigned_to = ? WHERE assigned_to = ? AND repo = ?",
+        [agentName, workerName, repoSlug],
+      );
+    }
+
     // Auto-spawn release agent for this repo if none exists
     const existingRelease = getWorkers(db, "release", repoSlug!);
 

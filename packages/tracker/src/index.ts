@@ -205,8 +205,22 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks assign <id> <worker>");
             process.exit(1);
           }
-          if (assignTask(db, taskId, workerName, repo)) {
-            ui.renderSuccess(`Task ${taskId} assigned to ${workerName}`);
+          // Resolve base worker name to prefixed form by checking workers table
+          let resolvedWorkerName = workerName;
+          if (repo) {
+            const workers = getWorkers(db, undefined, repo);
+            const match = workers.find(
+              (w) =>
+                w.worker_name === workerName ||
+                (w.session_prefix &&
+                  w.worker_name === `${w.session_prefix}-${workerName}`),
+            );
+            if (match) {
+              resolvedWorkerName = match.worker_name;
+            }
+          }
+          if (assignTask(db, taskId, resolvedWorkerName, repo)) {
+            ui.renderSuccess(`Task ${taskId} assigned to ${resolvedWorkerName}`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
             process.exit(1);
