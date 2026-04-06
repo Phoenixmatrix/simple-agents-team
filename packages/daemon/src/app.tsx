@@ -95,7 +95,7 @@ function StatusDashboard() {
       <Text bold color="cyan">SAT Dashboard</Text>
       <Box flexDirection="column" marginTop={1}>
         <Box gap={2} marginBottom={1}>
-          <Box width={20}><Text bold color="yellow">Worker</Text></Box>
+          <Box width={30}><Text bold color="yellow">Worker</Text></Box>
           <Box width={12}><Text bold color="yellow">Status</Text></Box>
           <Box width={10}><Text bold color="yellow">Repo</Text></Box>
           <Box><Text bold color="yellow">Session</Text></Box>
@@ -106,7 +106,7 @@ function StatusDashboard() {
           <>
             {global.map((w) => (
               <Box key={w.id} gap={2}>
-                <Box width={20}><Text bold color="magenta">{w.worker_name}</Text></Box>
+                <Box width={30}><Text bold color="magenta">{w.worker_name}</Text></Box>
                 <Box width={12}><Text color={statusColor(w.status)}>{w.status}</Text></Box>
                 <Box width={10}><Text color="gray">-</Text></Box>
                 <Box><Text color="cyan">{w.tmux_target ?? "-"}</Text></Box>
@@ -117,7 +117,7 @@ function StatusDashboard() {
                 <Text bold color="blue">{repoSlug}</Text>
                 {repoWorkers.map((w) => (
                   <Box key={w.id} gap={2}>
-                    <Box width={20}><Text bold color="magenta">{w.worker_name}</Text></Box>
+                    <Box width={30}><Text bold color="magenta">{w.worker_name}</Text></Box>
                     <Box width={12}><Text color={statusColor(w.status)}>{w.status}</Text></Box>
                     <Box width={10}><Text color="gray">{repoSlug}</Text></Box>
                     <Box><Text color="cyan">{w.tmux_target ?? "-"}</Text></Box>
