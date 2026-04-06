@@ -9,10 +9,12 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "verbatimModuleSyntax": true,
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "jsx": "react-jsx"
   },
   "references": [
     { "path": "packages/daemon" },
+    { "path": "packages/dashboard" },
     { "path": "packages/db" },
     { "path": "packages/hooks" },
     { "path": "packages/px" },

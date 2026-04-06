@@ -2,7 +2,7 @@ import { $ } from "bun";
 import type { Command } from "./command";
 import { getSettingsPath } from "./personas-data";
 import { getSessionPrefix, openDatabase, clearWorkersByWorkspace, addWorker } from "db";
-import { detectRepos, isGitRepo, resolveRepoPrefix } from "./workspace";
+import { detectRepos, resolveRepoPrefix } from "./workspace";
 
 import { command as tracker } from "tracker";
 import { command as workers } from "workers";

@@ -1,4 +1,4 @@
-import { Database } from "bun:sqlite";
+import { Database, type SQLQueryBindings } from "bun:sqlite";
 import { resolve, dirname } from "path";
 import { execSync } from "child_process";
 import { existsSync, mkdirSync } from "fs";
@@ -158,7 +158,7 @@ export interface Worker {
 const TASK_COLS = "id, task_id, description, status, assigned_to, blocked_by, portfolio, repo";
 
 export function getTasks(db: Database, statusFilter?: string | string[], repo?: string): Task[] {
-  const params: unknown[] = [];
+  const params: SQLQueryBindings[] = [];
   const conditions: string[] = [];
 
   if (statusFilter) {
@@ -278,7 +278,7 @@ const WORKER_COLS = "id, worker_name, type, status, tmux_target, session_prefix,
 
 export function getWorkers(db: Database, type?: WorkerType, repo?: string): Worker[] {
   const conditions: string[] = [];
-  const params: unknown[] = [];
+  const params: SQLQueryBindings[] = [];
   if (type) { conditions.push("type = ?"); params.push(type); }
   if (repo !== undefined) { conditions.push("repo = ?"); params.push(repo); }
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(" AND ")}` : "";

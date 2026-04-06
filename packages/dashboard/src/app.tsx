@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { render, Text, Box, useInput, useApp } from "ink";
-import { openDatabase, getWorkersByWorkspace, getWorkers, getTasks, type Worker, type Task } from "db";
+import { openDatabase, getWorkersByWorkspace, getWorkers, getTasks, type Worker } from "db";
 import { execSync } from "child_process";
 
 const POLL_INTERVAL_MS = 2000;

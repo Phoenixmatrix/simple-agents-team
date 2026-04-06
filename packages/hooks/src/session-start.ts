@@ -1,3 +1,5 @@
+export {};
+
 console.log(JSON.stringify({
   hookSpecificOutput: {
     hookEventName: "SessionStart",
