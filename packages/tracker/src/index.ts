@@ -18,6 +18,7 @@ import {
   setPortfolio,
   clearPortfolio,
   abbreviate,
+  setHeartbeat,
 } from "./db";
 import * as ui from "./ui";
 
@@ -96,6 +97,12 @@ async function run(args: string[]) {
   const agentName = process.env.PX_AGENT_NAME ?? "default";
   const repo = values.repo ?? process.env.PX_REPO ?? undefined;
 
+  function heartbeat() {
+    if (process.env.PX_AGENT_NAME) {
+      setHeartbeat(db, process.env.PX_AGENT_NAME);
+    }
+  }
+
   if (resource === "portfolio") {
     try {
       if (action === "open") {
@@ -135,21 +142,31 @@ async function run(args: string[]) {
         if (!action) {
           ui.renderTasks(getTasks(db, ["ready", "assigned", "in-progress"], repo));
         } else if (action === "me") {
-          const workerName = process.env.PX_AGENT_NAME;
-          if (!workerName) {
+          const agentName = process.env.PX_AGENT_NAME;
+          if (!agentName) {
             ui.renderError("PX_AGENT_NAME environment variable is not set");
             process.exit(1);
           }
+          const prefix = process.env.PX_SESSION_PREFIX;
+          const workerName = prefix && agentName.startsWith(`${prefix}-`)
+            ? agentName.slice(prefix.length + 1)
+            : agentName;
+          heartbeat();
           ui.renderTasks(getTasksForWorker(db, workerName, repo));
         } else if (action === "json") {
           const sub = positionals[2];
           let tasks;
           if (sub === "me") {
-            const workerName = process.env.PX_AGENT_NAME;
-            if (!workerName) {
+            const agentName = process.env.PX_AGENT_NAME;
+            if (!agentName) {
               console.error("PX_AGENT_NAME environment variable is not set");
               process.exit(1);
             }
+            const prefix = process.env.PX_SESSION_PREFIX;
+            const workerName = prefix && agentName.startsWith(`${prefix}-`)
+              ? agentName.slice(prefix.length + 1)
+              : agentName;
+            heartbeat();
             tasks = getTasksForWorker(db, workerName, repo);
           } else {
             tasks = getTasks(db, ["ready", "assigned", "in-progress"], repo);
@@ -176,6 +193,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks start <id>");
             process.exit(1);
           }
+          heartbeat();
           const result = startTask(db, taskId, repo);
           if (result.ok) {
             ui.renderSuccess(`Task ${taskId} started`);
@@ -192,6 +210,7 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks done <id>");
             process.exit(1);
           }
+          heartbeat();
           if (completeTask(db, taskId, repo)) {
             ui.renderSuccess(`Task ${taskId} marked as done`);
           } else {
@@ -205,22 +224,9 @@ async function run(args: string[]) {
             ui.renderError("Usage: px tracker tasks assign <id> <worker>");
             process.exit(1);
           }
-          // Resolve base worker name to prefixed form by checking workers table
-          let resolvedWorkerName = workerName;
-          if (repo) {
-            const workers = getWorkers(db, undefined, repo);
-            const match = workers.find(
-              (w) =>
-                w.worker_name === workerName ||
-                (w.session_prefix &&
-                  w.worker_name === `${w.session_prefix}-${workerName}`),
-            );
-            if (match) {
-              resolvedWorkerName = match.worker_name;
-            }
-          }
-          if (assignTask(db, taskId, resolvedWorkerName, repo)) {
-            ui.renderSuccess(`Task ${taskId} assigned to ${resolvedWorkerName}`);
+          heartbeat();
+          if (assignTask(db, taskId, workerName, repo)) {
+            ui.renderSuccess(`Task ${taskId} assigned to ${workerName}`);
           } else {
             ui.renderError(`Task ${taskId} not found`);
             process.exit(1);

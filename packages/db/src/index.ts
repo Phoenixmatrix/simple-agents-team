@@ -14,8 +14,9 @@ import * as m006 from "./migrations/006-task-portfolio";
 import * as m007 from "./migrations/007-worker-prefix";
 import * as m008 from "./migrations/008-portfolios";
 import * as m009 from "./migrations/009-multi-repo";
+import * as m010 from "./migrations/010-worker-heartbeat";
 
-const migrations: Migration[] = [m001, m002, m003, m004, m005, m006, m007, m008, m009];
+const migrations: Migration[] = [m001, m002, m003, m004, m005, m006, m007, m008, m009, m010];
 
 const DB_FILENAME = "px.db";
 
@@ -130,7 +131,6 @@ export function openDatabase(path?: string): Database {
 // --- Types ---
 
 export interface Task {
-  id: number;
   task_id: string;
   description: string;
   status: string;
@@ -151,11 +151,12 @@ export interface Worker {
   session_prefix: string | null;
   repo: string | null;
   workspace: string | null;
+  last_heartbeat: number | null;
 }
 
 // --- Task queries ---
 
-const TASK_COLS = "id, task_id, description, status, assigned_to, blocked_by, portfolio, repo";
+const TASK_COLS = "task_id, description, status, assigned_to, blocked_by, portfolio, repo";
 
 export function getTasks(db: Database, statusFilter?: string | string[], repo?: string): Task[] {
   const params: SQLQueryBindings[] = [];
@@ -274,7 +275,7 @@ export function clearTasks(db: Database) {
 
 // --- Worker queries ---
 
-const WORKER_COLS = "id, worker_name, type, status, tmux_target, session_prefix, repo, workspace";
+const WORKER_COLS = "id, worker_name, type, status, tmux_target, session_prefix, repo, workspace, last_heartbeat";
 
 export function getWorkers(db: Database, type?: WorkerType, repo?: string): Worker[] {
   const conditions: string[] = [];
@@ -320,6 +321,21 @@ export function removeWorker(db: Database, workerName: string): boolean {
 
 export function clearWorkers(db: Database) {
   db.run("DELETE FROM workers");
+}
+
+// --- Heartbeat queries ---
+
+export function setHeartbeat(db: Database, workerName: string) {
+  db.run("UPDATE workers SET last_heartbeat = ? WHERE worker_name = ?", [Date.now(), workerName]);
+}
+
+export function clearHeartbeat(db: Database, workerName: string) {
+  db.run("UPDATE workers SET last_heartbeat = NULL WHERE worker_name = ?", [workerName]);
+}
+
+export function getStaleWorkers(db: Database, thresholdMs: number): Worker[] {
+  const cutoff = Date.now() - thresholdMs;
+  return db.query(`SELECT ${WORKER_COLS} FROM workers WHERE last_heartbeat IS NOT NULL AND last_heartbeat < ?`).all(cutoff) as Worker[];
 }
 
 // --- Portfolio queries ---

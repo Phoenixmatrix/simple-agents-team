@@ -57,14 +57,14 @@ Analyze the repo to determine how to run quality checks (look at `package.json` 
 
 ### 5. Create a release task
 
-Create a release task assigned to the release worker for your repo. The release worker is named `${PX_REPO}-release` (based on your `PX_REPO` environment variable). Do not push the branch — the release worker handles integration and pushing. If your task has a portfolio, you **must** pass it through with `--portfolio`.
+Create a release task assigned to the release worker for your repo. The release worker is named `release`. Do not push the branch — the release worker handles integration and pushing. If your task has a portfolio, you **must** pass it through with `--portfolio`.
 
 With a portfolio:
 
 ```bash
 branch=$(git branch --show-current)
 release_task=$(px tracker tasks create R "Merge branch $branch" --portfolio <portfolio-name>)
-px tracker tasks assign "$release_task" "${PX_REPO}-release"
+px tracker tasks assign "$release_task" release
 ```
 
 Without a portfolio:
@@ -72,7 +72,7 @@ Without a portfolio:
 ```bash
 branch=$(git branch --show-current)
 release_task=$(px tracker tasks create R "Merge branch $branch")
-px tracker tasks assign "$release_task" "${PX_REPO}-release"
+px tracker tasks assign "$release_task" release
 ```
 
 ### 6. Mark your task as done

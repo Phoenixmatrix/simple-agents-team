@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { render, Text, Box } from "ink";
-import { openDatabase, getWorkers, getWorkersByWorkspace, type Worker } from "db";
+import { openDatabase, getWorkers, getWorkersByWorkspace, clearHeartbeat, getStaleWorkers, type Worker } from "db";
 import { TmuxSession } from "tmux-manager";
 
 const IDLE_THRESHOLD_MS = 20_000;
 const POLL_INTERVAL_MS = 2000;
+const HEARTBEAT_STALE_MS = 180_000;
 const SKIP_WORKERS = new Set(["coordinator", "daemon"]);
 
 function StatusDashboard() {
@@ -21,6 +22,20 @@ function StatusDashboard() {
         currentWorkers = workspace
           ? getWorkersByWorkspace(db, workspace)
           : getWorkers(db);
+
+        // Wake up workers with stale heartbeats
+        const stale = getStaleWorkers(db, HEARTBEAT_STALE_MS);
+        for (const w of stale) {
+          clearHeartbeat(db, w.worker_name);
+          if (w.tmux_target) {
+            try {
+              await TmuxSession.sendKeysToTarget(w.tmux_target, "Wake up and initialize.");
+            } catch {
+              // Session may be gone
+            }
+          }
+        }
+
         db.close();
       } catch {
         return;
