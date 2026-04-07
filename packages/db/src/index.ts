@@ -131,7 +131,6 @@ export function openDatabase(path?: string): Database {
 // --- Types ---
 
 export interface Task {
-  id: number;
   task_id: string;
   description: string;
   status: string;
@@ -157,7 +156,7 @@ export interface Worker {
 
 // --- Task queries ---
 
-const TASK_COLS = "id, task_id, description, status, assigned_to, blocked_by, portfolio, repo";
+const TASK_COLS = "task_id, description, status, assigned_to, blocked_by, portfolio, repo";
 
 export function getTasks(db: Database, statusFilter?: string | string[], repo?: string): Task[] {
   const params: SQLQueryBindings[] = [];
