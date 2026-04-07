@@ -18,4 +18,5 @@ export {
   setPortfolio,
   clearPortfolio,
   abbreviate,
+  setHeartbeat,
 } from "db";

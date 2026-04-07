@@ -16,6 +16,15 @@
             "command": "px hooks guard-dangerous"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "px heartbeat"
+          }
+        ]
       }
     ],
     "SessionStart": [
