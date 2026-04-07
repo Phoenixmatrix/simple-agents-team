@@ -16,6 +16,7 @@ import { command as getAgentName } from "./get-agent-name";
 import { command as personas } from "./personas";
 import { command as repo } from "./repo";
 import { command as dashboard } from "dashboard";
+import { command as heartbeat } from "./heartbeat";
 
 const commands: Command[] = [
   tracker,
@@ -28,6 +29,7 @@ const commands: Command[] = [
   personas,
   repo,
   dashboard,
+  heartbeat,
 ];
 
 const commandMap = new Map(commands.map((c) => [c.name, c]));
